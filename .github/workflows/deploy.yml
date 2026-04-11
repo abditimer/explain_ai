@@ -26,20 +26,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: gpt-tutorial/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: gpt-tutorial
         run: npm ci
 
       - name: Build
-        working-directory: gpt-tutorial
         run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: gpt-tutorial/dist
+          path: dist
 
   deploy:
     needs: build

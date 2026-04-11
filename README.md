@@ -1,16 +1,39 @@
-# React + Vite
+# explain_ai
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive, step-by-step visual tutorial that explains how GPT works — from raw text to trained model — by walking through real PyTorch code.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The app presents the GPT architecture as a guided tour. Each section pairs a plain-English explanation with the corresponding Python/PyTorch code, highlighted in a side-by-side (or toggled mobile) view. Topics covered:
 
-## React Compiler
+1. **Data Preparation** — tokenisation with BPE and the sliding-window dataset
+2. **Embeddings** — token and positional embeddings
+3. **Multi-Head Attention** — queries, keys, values and the causal mask
+4. **FeedForward Network** — the MLP inside each transformer block
+5. **Transformer Block** — residual connections and layer normalisation
+6. **GPT Architecture** — stacking 12 transformer blocks into a full model
+7. **Text Generation** — autoregressive sampling with temperature and top-k
+8. **Training Loop** — forward pass, cross-entropy loss, backprop, optimiser step
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+- **React 19** + **Vite** — UI and dev server
+- **Tailwind CSS** — styling
+- **Lucide React** — icons
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Other commands
+
+| Command | Description |
+|---|---|
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build locally |
+| `npm run lint` | Run ESLint |

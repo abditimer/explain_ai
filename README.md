@@ -1,25 +1,56 @@
-# explain_ai
+# How Transformers Are Built
 
-An interactive, step-by-step visual tutorial that explains how GPT works — from raw text to trained model — by walking through real PyTorch code.
+A Pudding-style scrollytelling website that explains the GPT architecture — from raw text to trained model — with animated D3 diagrams and real PyTorch code synced to each section.
 
-## What it does
+## Architecture
 
-The app presents the GPT architecture as a guided tour. Each section pairs a plain-English explanation with the corresponding Python/PyTorch code, highlighted in a side-by-side (or toggled mobile) view. Topics covered:
+```
+Story column (scrolls)          Diagram column (sticky)
+────────────────────────        ──────────────────────────
+Hero title                      D3 animated diagram
+                                  └─ auto-advances through steps
+Section 1 (step trigger)          as each section enters view
+Section 2
+…                               Code workspace
+Section 8                         └─ PyTorch snippet synced
+                                     to current section
+```
 
-1. **Data Preparation** — tokenisation with BPE and the sliding-window dataset
-2. **Embeddings** — token and positional embeddings
-3. **Multi-Head Attention** — queries, keys, values and the causal mask
-4. **FeedForward Network** — the MLP inside each transformer block
-5. **Transformer Block** — residual connections and layer normalisation
-6. **GPT Architecture** — stacking 12 transformer blocks into a full model
-7. **Text Generation** — autoregressive sampling with temperature and top-k
-8. **Training Loop** — forward pass, cross-entropy loss, backprop, optimiser step
+## Story sections
+
+| # | ID | Topic |
+|---|---|---|
+| 1 | `intro` | Next-token prediction |
+| 2 | `tokenization` | BPE tokenisation + sliding window |
+| 3 | `embeddings` | Token + position embeddings |
+| 4 | `attention` | Multi-head attention heatmap |
+| 5 | `feedforward` | FFN expansion 768 → 3072 → 768 |
+| 6 | `block` | Transformer block + residuals |
+| 7 | `generation` | Autoregressive sampling |
+| 8 | `training` | Loss curve, backprop, AdamW |
 
 ## Tech stack
 
-- **React 19** + **Vite** — UI and dev server
-- **Tailwind CSS** — styling
-- **Lucide React** — icons
+| Library | Role |
+|---|---|
+| **React 19** + **Vite** | UI and dev server |
+| **Scrollama** | IntersectionObserver-based step triggers |
+| **Lenis** | Smooth scroll (doesn't break `position:sticky`) |
+| **D3.js** | Animated SVG diagrams |
+
+## Scrollytelling pattern
+
+- **Sticky graphic**: diagram column is `position: sticky` with `align-items: start` on the grid
+- **Step triggers**: `.story-panel` elements are Scrollama steps; `onStepEnter` sets `currentStep`
+- **Auto-advance**: when `currentStep` changes, `diagramStep` resets to 0 then increments every 1800ms
+- **Diagram swap**: `DIAGRAM_MAP[section.id]` selects the right D3 component; falls back to nothing
+
+## Roadmap
+
+- [x] Phase 1 — Scroll engine (Scrollama + Lenis)
+- [x] Phase 2 — Layout rebuild (sticky diagram + code workspace)
+- [x] Phase 3 — D3 animated diagrams (all 8 sections)
+- [ ] Phase 4 — Polish (syntax highlighting, mobile, progress indicator)
 
 ## Getting started
 
@@ -28,9 +59,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## Other commands
+Open [http://localhost:5173](http://localhost:5173).
 
 | Command | Description |
 |---|---|

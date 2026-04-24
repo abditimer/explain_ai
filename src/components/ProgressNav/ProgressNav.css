@@ -1,0 +1,70 @@
+.progress-nav {
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+
+.progress-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #1e293b;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease, background 0.2s ease;
+  outline: none;
+}
+
+.progress-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.progress-dot.is-past { background: #334155; }
+
+/* Active dot: uses the accent colour via currentColor trick */
+.progress-dot.is-active { transform: scale(1.5); }
+.progress-dot.is-active.signal-blue   { background: #60a5fa; box-shadow: 0 0 8px #60a5fa66; }
+.progress-dot.is-active.signal-purple { background: #a78bfa; box-shadow: 0 0 8px #a78bfa66; }
+.progress-dot.is-active.signal-pink   { background: #f472b6; box-shadow: 0 0 8px #f472b666; }
+.progress-dot.is-active.signal-orange { background: #fb923c; box-shadow: 0 0 8px #fb923c66; }
+.progress-dot.is-active.signal-green  { background: #34d399; box-shadow: 0 0 8px #34d39966; }
+.progress-dot.is-active.signal-teal   { background: #2dd4bf; box-shadow: 0 0 8px #2dd4bf66; }
+.progress-dot.is-active.signal-indigo { background: #818cf8; box-shadow: 0 0 8px #818cf866; }
+.progress-dot.is-active.signal-red    { background: #f87171; box-shadow: 0 0 8px #f8717166; }
+
+/* Tooltip */
+.progress-dot-tooltip {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.progress-dot:hover .progress-dot-tooltip { opacity: 1; }
+
+@media (max-width: 860px) {
+  .progress-nav { display: none; }
+}

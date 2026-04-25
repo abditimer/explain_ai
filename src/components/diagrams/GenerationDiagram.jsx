@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { select, scaleLinear, max } from 'd3';
+import { scaleLinear, max } from 'd3';
 import { useDiagramSetup } from './useDiagramSetup';
 
 const W = 480, H = 340;

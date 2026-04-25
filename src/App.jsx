@@ -37,15 +37,17 @@ const SCROLL_STEPS = storySections.flatMap((section, sIdx) =>
 );
 
 export default function App() {
-  const [activeGlobal, setActiveGlobal] = useState(0);
+  const [activeGlobal, setActiveGlobal] = useState(-1);
   const [expandedSteps, setExpandedSteps] = useState({});
   const scrollProgress = useScrollProgress();
 
   const onStepEnter = useCallback(({ index }) => setActiveGlobal(index), []);
   useScrollama({ step: '.story-step', offset: 0.5, onStepEnter });
 
-  const current = SCROLL_STEPS[activeGlobal] ?? SCROLL_STEPS[0];
-  const { section, stepIndex, sectionIndex } = current;
+  const current = activeGlobal >= 0 ? SCROLL_STEPS[activeGlobal] : null;
+  const section = current?.section ?? storySections[0];
+  const stepIndex = current?.stepIndex ?? 0;
+  const sectionIndex = current?.sectionIndex ?? -1;
   const DiagramComponent = DIAGRAM_MAP[section.id];
 
   const toggleExpand = (key) =>

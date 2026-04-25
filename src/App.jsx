@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Scrolly } from './components/Scrolly/Scrolly';
+import { useState, useCallback } from 'react';
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
   FeedForwardDiagram, BlockDiagram, GenerationDiagram, TrainingDiagram,
 } from './components/diagrams/index';
-import { ProgressNav } from './components/ProgressNav/ProgressNav';
+import { ChapterNav } from './components/ProgressNav/ProgressNav';
 import { CodeBlock } from './components/CodeBlock/CodeBlock';
+import { useScrollama } from './hooks/useScrollama';
 import { useScrollProgress } from './hooks/useScrollProgress';
 import { storySections } from './data/story';
 import { codeBlocks } from './data/codeBlocks';
@@ -22,135 +22,150 @@ const DIAGRAM_MAP = {
   training: TrainingDiagram,
 };
 
-function findSnippet(snippetId) {
-  return codeBlocks.find((b) => b.id === snippetId) ?? codeBlocks[0];
+function findSnippet(id) {
+  return codeBlocks.find((b) => b.id === id) ?? codeBlocks[0];
 }
 
+const SCROLL_STEPS = storySections.flatMap((section, sIdx) =>
+  section.steps.map((text, stepIdx) => ({
+    section,
+    sectionIndex: sIdx,
+    stepIndex: stepIdx + 1,
+    isFirst: stepIdx === 0,
+    text,
+  }))
+);
+
 export default function App() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [diagramStep, setDiagramStep] = useState(0);
-  const [showFullCode, setShowFullCode] = useState(false);
-  const panelRefs = useRef([]);
+  const [activeGlobal, setActiveGlobal] = useState(0);
+  const [expandedSteps, setExpandedSteps] = useState({});
   const scrollProgress = useScrollProgress();
 
-  useEffect(() => {
-    setDiagramStep(0);
-    const section = storySections[currentStep];
-    if (!section) return;
-    const total = section.diagramSteps ?? 0;
-    if (total <= 0) return;
-    const timers = [];
-    for (let i = 1; i <= total; i++) {
-      timers.push(setTimeout(() => setDiagramStep(i), i * 1800));
-    }
-    return () => timers.forEach(clearTimeout);
-  }, [currentStep]);
+  const onStepEnter = useCallback(({ index }) => setActiveGlobal(index), []);
+  useScrollama({ step: '.story-step', offset: 0.5, onStepEnter });
 
-  const handleStepChange = useCallback((idx) => setCurrentStep(idx), []);
+  const current = SCROLL_STEPS[activeGlobal] ?? SCROLL_STEPS[0];
+  const { section, stepIndex, sectionIndex } = current;
+  const DiagramComponent = DIAGRAM_MAP[section.id];
 
-  const scrollToSection = useCallback((idx) => {
-    panelRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, []);
-
-  const section = storySections[currentStep];
-  const snippet = section?.snippetId ? findSnippet(section.snippetId) : null;
-  const DiagramComponent = DIAGRAM_MAP[section?.id];
+  const toggleExpand = (key) =>
+    setExpandedSteps((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <>
-      {/* Top progress bar */}
-      <div className="scroll-progress-bar" style={{ transform: `scaleX(${scrollProgress})` }} />
+      <div className="top-bar" style={{ transform: `scaleX(${scrollProgress})` }} />
 
-      {/* Section dot nav */}
-      <ProgressNav sections={storySections} currentStep={currentStep} onDotClick={scrollToSection} />
+      <ChapterNav
+        sections={storySections}
+        currentSection={sectionIndex}
+        currentSubStep={stepIndex - 1}
+        onChapterClick={(sIdx) => {
+          const target = SCROLL_STEPS.findIndex((s) => s.sectionIndex === sIdx);
+          document.querySelectorAll('.story-step')[target]
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }}
+        onSubStepClick={(sIdx, stepIdx) => {
+          const target = SCROLL_STEPS.findIndex(
+            (s) => s.sectionIndex === sIdx && s.stepIndex === stepIdx + 1
+          );
+          document.querySelectorAll('.story-step')[target]
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }}
+      />
 
-      <Scrolly stepSelector=".story-panel" offset={0.45} onStepChange={handleStepChange}>
-        {(localStep) => (
-          <main className="experience-shell">
+      <main className="experience-shell">
 
-            {/* ── Left: scrolling narrative ── */}
-            <section className="story-column">
-              <div className="story-hero">
-                <h1 className="story-hero-title">How Transformers Are Built</h1>
-                <p className="story-hero-sub">Scroll to explore the architecture behind GPT — from raw text to generated language.</p>
-                <div className="hero-scroll-hint">
-                  <span className="scroll-hint-line" />
-                  <span className="scroll-hint-text">scroll</span>
-                </div>
-              </div>
+        {/* ── LEFT: scrolling narrative + inline code ── */}
+        <div className="story-column">
+          <div className="story-hero">
+            <h1 className="story-hero-title">How Transformers<br />Are Built</h1>
+            <p className="story-hero-sub">Scroll to explore the architecture behind GPT — from raw text to generated language.</p>
+            <div className="hero-scroll-hint">
+              <span className="scroll-hint-line" />
+              <span className="scroll-hint-text">scroll</span>
+            </div>
+          </div>
 
-              {storySections.map((sec, i) => (
-                <article
-                  key={sec.id}
-                  ref={(el) => { panelRefs.current[i] = el; }}
-                  className={`story-panel${localStep === i ? ' is-active' : ''}`}
-                  data-section={sec.id}
-                >
-                  <span className={`eyebrow ${sec.accent}`}>{sec.eyebrow}</span>
-                  <h2 className="panel-title">{sec.title}</h2>
-                  <p className="panel-summary">{sec.summary}</p>
-                  <div className="panel-stats">
-                    {sec.stats.map((s) => (
-                      <div key={s.label} className="stat-chip">
-                        <span className="stat-value">{s.value}</span>
-                        <span className="stat-label">{s.label}</span>
+          {SCROLL_STEPS.map((s, i) => {
+            const stepSnippet = s.section.snippetId ? findSnippet(s.section.snippetId) : null;
+            const expandKey = `${s.section.id}-${s.stepIndex}`;
+            const isExpanded = !!expandedSteps[expandKey];
+
+            return (
+              <div
+                key={expandKey}
+                className={`story-step${activeGlobal === i ? ' is-active' : ''}`}
+              >
+                {s.isFirst && (
+                  <div className="section-header">
+                    <span className={`eyebrow ${s.section.accent}`}>{s.section.eyebrow}</span>
+                    <h2 className="panel-title">{s.section.title}</h2>
+                  </div>
+                )}
+
+                <p className="step-caption">{s.text}</p>
+
+                {/* Inline code snippet */}
+                {stepSnippet && (
+                  <div className="step-code">
+                    <div className="step-code-header">
+                      <div className="window-chrome">
+                        <span className="dot red" /><span className="dot yellow" /><span className="dot green" />
                       </div>
-                    ))}
-                  </div>
-                  <blockquote className="panel-callout">{sec.callout}</blockquote>
-                </article>
-              ))}
-
-              <div className="story-end">
-                <p>You've seen the full transformer stack.</p>
-                <p className="story-end-sub">Data → Tokens → Embeddings → Attention → FFN → Generation → Training.</p>
-              </div>
-            </section>
-
-            {/* ── Right: sticky diagram + code ── */}
-            <aside className="diagram-column">
-              <div className="diagram-frame">
-                <div className="diagram-label">
-                  <span className={`diagram-section-badge ${section?.accent}`}>{section?.id ?? 'intro'}</span>
-                  <div className="diagram-step-pips">
-                    {Array.from({ length: section?.diagramSteps ?? 0 }, (_, i) => (
-                      <span
-                        key={i}
-                        className={`step-pip${diagramStep > i ? ' is-filled' : ''}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="diagram-canvas">
-                  {DiagramComponent && <DiagramComponent step={diagramStep} />}
-                </div>
-              </div>
-
-              {snippet && (
-                <div className="code-workspace">
-                  <div className="workspace-header">
-                    <div className="window-chrome">
-                      <span className="dot red" /><span className="dot yellow" /><span className="dot green" />
+                      <span className="step-code-title">{stepSnippet.title}</span>
+                      <button
+                        className="expand-btn"
+                        onClick={() => toggleExpand(expandKey)}
+                        aria-label="Toggle code"
+                      >{isExpanded ? '−' : '+'}</button>
                     </div>
-                    <span className="snippet-title">{snippet.title}</span>
-                    <button
-                      className="expand-btn"
-                      onClick={() => setShowFullCode((v) => !v)}
-                      aria-label="Toggle full code"
-                    >
-                      {showFullCode ? '−' : '+'}
-                    </button>
+                    <div className={`step-code-body${isExpanded ? ' is-expanded' : ''}`}>
+                      <CodeBlock code={stepSnippet.code} />
+                    </div>
                   </div>
-                  <div className={`code-frame${showFullCode ? ' is-expanded' : ''}`}>
-                    <CodeBlock code={snippet.code} />
-                  </div>
-                </div>
-              )}
-            </aside>
+                )}
 
-          </main>
-        )}
-      </Scrolly>
+                {s.stepIndex === s.section.steps.length && (
+                  <>
+                    <div className="panel-stats">
+                      {s.section.stats.map((st) => (
+                        <div key={st.label} className="stat-chip">
+                          <span className="stat-value">{st.value}</span>
+                          <span className="stat-label">{st.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <blockquote className="panel-callout">{s.section.callout}</blockquote>
+                  </>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="story-end">
+            <p>You've seen the full transformer stack.</p>
+            <p className="story-end-sub">Tokens → Embeddings → Attention → FFN → Generation → Training.</p>
+          </div>
+        </div>
+
+        {/* ── RIGHT: sticky diagram only — full height ── */}
+        <aside className="diagram-column">
+          <div className="diagram-frame">
+            <div className="diagram-label">
+              <span className={`diagram-section-badge ${section.accent}`}>{section.id}</span>
+              <div className="diagram-step-pips">
+                {Array.from({ length: section.steps.length }, (_, i) => (
+                  <span key={i} className={`step-pip${stepIndex > i ? ' is-filled' : ''}`} />
+                ))}
+              </div>
+            </div>
+            <div className="diagram-canvas">
+              {DiagramComponent && <DiagramComponent step={stepIndex} />}
+            </div>
+          </div>
+        </aside>
+
+      </main>
     </>
   );
 }

@@ -1,70 +1,138 @@
-.progress-nav {
+.chapter-nav {
   position: fixed;
-  right: 1.25rem;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 56px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  align-items: stretch;
   z-index: 100;
+  padding: 1.5rem 0;
+  border-left: 1px solid #0f1622;
+  background: #06080f;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.chapter-nav::-webkit-scrollbar { display: none; }
+
+/* ── Group wrapper ── */
+.chapter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
-.progress-dot {
-  position: relative;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+/* ── Section row (1, 2, 3 …) ── */
+.chapter-section-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
   border: none;
-  background: #1e293b;
   cursor: pointer;
-  padding: 0;
-  transition: transform 0.2s ease, background 0.2s ease;
+  padding: 5px 8px 2px;
   outline: none;
+  width: 100%;
 }
 
-.progress-dot::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s ease;
+.chapter-section-num {
+  font-size: 0.62rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #1e293b;
+  transition: color 0.2s;
+  line-height: 1;
+  min-width: 10px;
 }
 
-.progress-dot.is-past { background: #334155; }
-
-/* Active dot: uses the accent colour via currentColor trick */
-.progress-dot.is-active { transform: scale(1.5); }
-.progress-dot.is-active.signal-blue   { background: #60a5fa; box-shadow: 0 0 8px #60a5fa66; }
-.progress-dot.is-active.signal-purple { background: #a78bfa; box-shadow: 0 0 8px #a78bfa66; }
-.progress-dot.is-active.signal-pink   { background: #f472b6; box-shadow: 0 0 8px #f472b666; }
-.progress-dot.is-active.signal-orange { background: #fb923c; box-shadow: 0 0 8px #fb923c66; }
-.progress-dot.is-active.signal-green  { background: #34d399; box-shadow: 0 0 8px #34d39966; }
-.progress-dot.is-active.signal-teal   { background: #2dd4bf; box-shadow: 0 0 8px #2dd4bf66; }
-.progress-dot.is-active.signal-indigo { background: #818cf8; box-shadow: 0 0 8px #818cf866; }
-.progress-dot.is-active.signal-red    { background: #f87171; box-shadow: 0 0 8px #f8717166; }
-
-/* Tooltip */
-.progress-dot-tooltip {
-  position: absolute;
-  right: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  color: #94a3b8;
-  font-size: 0.7rem;
-  font-family: 'Inter', sans-serif;
-  white-space: nowrap;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
+.chapter-section-line {
+  flex: 1;
+  height: 1px;
+  background: #1a2233;
+  transition: background 0.25s, height 0.2s;
 }
 
-.progress-dot:hover .progress-dot-tooltip { opacity: 1; }
+.chapter-section-item.is-past .chapter-section-num { color: #334155; }
+.chapter-section-item.is-past .chapter-section-line { background: #334155; }
 
-@media (max-width: 860px) {
-  .progress-nav { display: none; }
+.chapter-section-item.is-active .chapter-section-num { color: inherit; }
+.chapter-section-item.is-active .chapter-section-line { height: 2px; }
+
+.chapter-section-item:hover .chapter-section-num { color: #64748b; }
+
+/* ── Sub-step rows (1.1, 1.2 …) ── */
+.chapter-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 8px 2px 14px;
+  outline: none;
+  width: 100%;
+}
+
+.chapter-sub-num {
+  font-size: 0.52rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  color: #1a2233;
+  transition: color 0.2s;
+  line-height: 1;
+  min-width: 22px;
+}
+
+.chapter-sub-num.is-past { color: #2d3f55; }
+.chapter-sub-num.is-active { color: #94a3b8; font-weight: 600; }
+
+.chapter-sub-tick {
+  flex: 1;
+  height: 1px;
+  background: #131c2b;
+  transition: background 0.2s, height 0.2s;
+}
+
+.chapter-sub-tick.is-past { background: #1e3050; }
+.chapter-sub-tick.is-active {
+  height: 2px;
+}
+
+.chapter-sub-item:hover .chapter-sub-num { color: #475569; }
+
+/* Active accent colors — section number */
+.chapter-section-item.is-active .signal-blue   { color: #60a5fa; }
+.chapter-section-item.is-active .signal-purple { color: #a78bfa; }
+.chapter-section-item.is-active .signal-pink   { color: #f472b6; }
+.chapter-section-item.is-active .signal-orange { color: #fb923c; }
+.chapter-section-item.is-active .signal-green  { color: #34d399; }
+.chapter-section-item.is-active .signal-teal   { color: #2dd4bf; }
+.chapter-section-item.is-active .signal-indigo { color: #818cf8; }
+.chapter-section-item.is-active .signal-red    { color: #f87171; }
+
+/* Active accent colors — section line */
+.chapter-section-item.is-active .signal-blue.chapter-section-line   { background: #60a5fa; }
+.chapter-section-item.is-active .signal-purple.chapter-section-line { background: #a78bfa; }
+.chapter-section-item.is-active .signal-pink.chapter-section-line   { background: #f472b6; }
+.chapter-section-item.is-active .signal-orange.chapter-section-line { background: #fb923c; }
+.chapter-section-item.is-active .signal-green.chapter-section-line  { background: #34d399; }
+.chapter-section-item.is-active .signal-teal.chapter-section-line   { background: #2dd4bf; }
+.chapter-section-item.is-active .signal-indigo.chapter-section-line { background: #818cf8; }
+.chapter-section-item.is-active .signal-red.chapter-section-line    { background: #f87171; }
+
+/* Active accent colors — sub-step tick */
+.chapter-sub-tick.is-active.signal-blue   { background: #60a5fa; }
+.chapter-sub-tick.is-active.signal-purple { background: #a78bfa; }
+.chapter-sub-tick.is-active.signal-pink   { background: #f472b6; }
+.chapter-sub-tick.is-active.signal-orange { background: #fb923c; }
+.chapter-sub-tick.is-active.signal-green  { background: #34d399; }
+.chapter-sub-tick.is-active.signal-teal   { background: #2dd4bf; }
+.chapter-sub-tick.is-active.signal-indigo { background: #818cf8; }
+.chapter-sub-tick.is-active.signal-red    { background: #f87171; }
+
+@media (max-width: 900px) {
+  .chapter-nav { display: none; }
 }

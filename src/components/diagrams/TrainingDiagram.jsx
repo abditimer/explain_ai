@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { select, scaleLinear, line, axisBottom, axisLeft, easeQuadInOut } from 'd3';
+import { scaleLinear, line, axisBottom, axisLeft, easeQuadInOut } from 'd3';
 import { useDiagramSetup } from './useDiagramSetup';
 
 const W = 480, H = 340;
@@ -88,7 +88,6 @@ export function TrainingDiagram({ step = 0 }) {
 
     if (s >= 1) {
       const path = g.select('.loss-path');
-      const totalLength = path.node()?.getTotalLength() ?? 0;
       path.attr('opacity', 1)
         .transition().duration(1400).ease(easeQuadInOut)
         .attr('stroke-dashoffset', 0);

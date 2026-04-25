@@ -107,6 +107,8 @@ export function AttentionDiagram({ step = 0 }) {
         svg.select(`.cell-${i}-${j}`).transition().duration(300).attr('opacity', 0);
         svg.select(`.cell-txt-${i}-${j}`).transition().duration(300).attr('opacity', 0);
       }));
+    }
+    if (s < 3) {
       svg.select('.softmax-label').transition().duration(300).attr('opacity', 0);
     }
   }, []);

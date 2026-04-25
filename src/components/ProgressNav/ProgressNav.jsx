@@ -14,6 +14,8 @@ export function ChapterNav({ sections, currentSection, currentSubStep, onChapter
               className={`chapter-section-item${isActiveSection ? ' is-active' : ''}${isPastSection ? ' is-past' : ''}`}
               onClick={() => onChapterClick(sIdx)}
               title={sec.title}
+              aria-label={`Go to section ${sIdx + 1}: ${sec.title}`}
+              aria-current={isActiveSection ? 'true' : undefined}
             >
               <span className={`chapter-section-num ${isActiveSection ? sec.accent : ''}`}>
                 {sIdx + 1}
@@ -32,6 +34,8 @@ export function ChapterNav({ sections, currentSection, currentSubStep, onChapter
                   className={`chapter-sub-item${isActiveSub ? ' is-active' : ''}${isPastSub ? ' is-past' : ''}`}
                   onClick={() => onSubStepClick(sIdx, stepIdx)}
                   title={`${sIdx + 1}.${stepIdx + 1}`}
+                  aria-label={`Go to ${sIdx + 1}.${stepIdx + 1}: ${sec.title}`}
+                  aria-current={isActiveSub ? 'true' : undefined}
                 >
                   <span className={`chapter-sub-num${isActiveSub ? ' is-active' : ''}${isPastSub ? ' is-past' : ''}`}>
                     {sIdx + 1}.{stepIdx + 1}

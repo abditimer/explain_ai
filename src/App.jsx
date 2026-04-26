@@ -53,14 +53,16 @@ export default function App() {
   const toggleExpand = (key) =>
     setExpandedSteps((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Scroll to a specific global step index via Lenis so smooth scroll works
+  // Scroll to a specific global step index via Lenis
   const scrollToStep = useCallback((idx) => {
     const clamped = Math.max(0, Math.min(SCROLL_STEPS.length - 1, idx));
     const el = document.querySelectorAll('.story-step')[clamped];
     if (!el) return;
     const lenis = window.__lenis;
     if (lenis) {
-      lenis.scrollTo(el, { offset: -window.innerHeight * 0.25, duration: 1.0 });
+      // Pass absolute Y so Lenis doesn't have to resolve the element itself
+      const targetY = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.3;
+      lenis.scrollTo(Math.max(0, targetY), { duration: 1.2 });
     } else {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -71,6 +73,7 @@ export default function App() {
   useEffect(() => { activeGlobalRef.current = activeGlobal; }, [activeGlobal]);
 
   useEffect(() => {
+    // capture: true so we run before browser default arrow-key scroll
     const onKey = (e) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
         e.preventDefault();
@@ -80,8 +83,8 @@ export default function App() {
         scrollToStep(activeGlobalRef.current - 1);
       }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
   }, [scrollToStep]);
 
   return (

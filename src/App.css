@@ -18,11 +18,14 @@
   max-width: 1340px;
   margin: 0 auto;
   padding: 0 2rem;
+  /* account for fixed 56px chapter-nav on the right */
+  padding-right: calc(56px + 2rem);
   gap: 0;
 }
 
 /* ─── Story column (scrolls) ───────────────────────────────────────── */
 .story-column {
+  min-width: 0; /* prevent code blocks from blowing out the grid track */
   padding-bottom: 50vh;
   padding-right: 3rem;
 }
@@ -231,6 +234,7 @@
 
 /* ─── Diagram column (sticky, full height) ──────────────────────────── */
 .diagram-column {
+  min-width: 0; /* prevent diagram from blowing out the grid track */
   position: sticky;
   top: 0;
   height: 100vh;

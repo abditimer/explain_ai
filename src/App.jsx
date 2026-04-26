@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
+// NOTE: keyboard arrow navigation lives in main.jsx (direct lenis reference, no React lifecycle)
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
   FeedForwardDiagram, BlockDiagram, GenerationDiagram, TrainingDiagram,
@@ -53,39 +54,19 @@ export default function App() {
   const toggleExpand = (key) =>
     setExpandedSteps((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Scroll to a specific global step index via Lenis
+  // Scroll to a specific global step index via Lenis (used by nav clicks)
   const scrollToStep = useCallback((idx) => {
     const clamped = Math.max(0, Math.min(SCROLL_STEPS.length - 1, idx));
     const el = document.querySelectorAll('.story-step')[clamped];
     if (!el) return;
     const lenis = window.__lenis;
     if (lenis) {
-      // Pass absolute Y so Lenis doesn't have to resolve the element itself
-      const targetY = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.3;
-      lenis.scrollTo(Math.max(0, targetY), { duration: 1.2 });
+      const targetY = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35;
+      lenis.scrollTo(Math.max(0, targetY), { duration: 1.0 });
     } else {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
-
-  // Keyboard up/down navigation between sub-steps
-  const activeGlobalRef = useRef(activeGlobal);
-  useEffect(() => { activeGlobalRef.current = activeGlobal; }, [activeGlobal]);
-
-  useEffect(() => {
-    // capture: true so we run before browser default arrow-key scroll
-    const onKey = (e) => {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        e.preventDefault();
-        scrollToStep(activeGlobalRef.current + 1);
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        scrollToStep(activeGlobalRef.current - 1);
-      }
-    };
-    window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
-  }, [scrollToStep]);
 
   return (
     <>

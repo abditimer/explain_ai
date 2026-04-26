@@ -20,7 +20,8 @@ window.addEventListener('load', () => lenis.resize());
 // __targetStep tracks where we intend to be (advances immediately on each
 // keypress). __activeStep (set by Scrollama in App.jsx) syncs it back to
 // ground truth once the scroll animation settles.
-window.__targetStep = 0;
+// -1 so the first ↓ press lands on step 0 (not step 1)
+window.__targetStep = -1;
 
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' &&
@@ -47,17 +48,10 @@ window.addEventListener('keydown', (e) => {
 
   lenis.resize(); // ensure limit is calculated
   const rect = el.getBoundingClientRect();
-  const targetY = rect.top + window.scrollY - window.innerHeight * 0.35;
-  const finalY = Math.max(0, targetY);
-  console.log('[KEY NAV]', {
-    key: e.key,
-    targetStep: window.__targetStep,
-    lenisLimit: lenis.limit,
-    scrollY: window.scrollY,
-    rectTop: rect.top,
-    targetY,
-    finalY,
-  });
+  // Center the step vertically in the viewport
+  const stepHeight = el.offsetHeight;
+  const topOffset = Math.max(0, (window.innerHeight - stepHeight) / 2);
+  const finalY = Math.max(0, rect.top + window.scrollY - topOffset);
   lenis.scrollTo(finalY, { duration: 1.0 });
 }, { capture: true });
 // ────────────────────────────────────────────────────────────────────────

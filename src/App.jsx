@@ -68,8 +68,9 @@ export default function App() {
     if (!el) return;
     const lenis = window.__lenis;
     if (lenis) {
-      const targetY = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35;
-      lenis.scrollTo(Math.max(0, targetY), { duration: 1.0 });
+      const stepHeight = el.offsetHeight;
+      const topOffset = Math.max(0, (window.innerHeight - stepHeight) / 2);
+      lenis.scrollTo(Math.max(0, el.getBoundingClientRect().top + window.scrollY - topOffset), { duration: 1.0 });
     } else {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }

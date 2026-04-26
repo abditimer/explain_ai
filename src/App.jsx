@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
   FeedForwardDiagram, BlockDiagram, GenerationDiagram, TrainingDiagram,
@@ -53,6 +53,31 @@ export default function App() {
   const toggleExpand = (key) =>
     setExpandedSteps((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  // Scroll to a specific global step index
+  const scrollToStep = useCallback((idx) => {
+    const clamped = Math.max(0, Math.min(SCROLL_STEPS.length - 1, idx));
+    document.querySelectorAll('.story-step')[clamped]
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, []);
+
+  // Keyboard up/down navigation between sub-steps
+  const activeGlobalRef = useRef(activeGlobal);
+  useEffect(() => { activeGlobalRef.current = activeGlobal; }, [activeGlobal]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        scrollToStep(activeGlobalRef.current + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        scrollToStep(activeGlobalRef.current - 1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [scrollToStep]);
+
   return (
     <>
       <div className="top-bar" style={{ transform: `scaleX(${scrollProgress})` }} />
@@ -63,15 +88,13 @@ export default function App() {
         currentSubStep={stepIndex - 1}
         onChapterClick={(sIdx) => {
           const target = SCROLL_STEPS.findIndex((s) => s.sectionIndex === sIdx);
-          document.querySelectorAll('.story-step')[target]
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          scrollToStep(target);
         }}
         onSubStepClick={(sIdx, stepIdx) => {
           const target = SCROLL_STEPS.findIndex(
             (s) => s.sectionIndex === sIdx && s.stepIndex === stepIdx + 1
           );
-          document.querySelectorAll('.story-step')[target]
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          scrollToStep(target);
         }}
       />
 
@@ -162,7 +185,9 @@ export default function App() {
               </div>
             </div>
             <div className="diagram-canvas">
-              {DiagramComponent && <DiagramComponent step={stepIndex} />}
+              <div key={section.id} className="diagram-canvas-inner">
+                {DiagramComponent && <DiagramComponent step={stepIndex} />}
+              </div>
             </div>
           </div>
         </aside>

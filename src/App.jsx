@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 // NOTE: keyboard arrow navigation lives in main.jsx (direct lenis reference, no React lifecycle)
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
@@ -44,6 +44,9 @@ export default function App() {
 
   const onStepEnter = useCallback(({ index }) => setActiveGlobal(index), []);
   useScrollama({ step: '.story-step', offset: 0.5, onStepEnter });
+
+  // Keep main.jsx keyboard handler in sync with the active step
+  useEffect(() => { window.__activeStep = activeGlobal; }, [activeGlobal]);
 
   const current = activeGlobal >= 0 ? SCROLL_STEPS[activeGlobal] : null;
   const section = current?.section ?? storySections[0];

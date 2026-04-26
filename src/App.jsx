@@ -46,7 +46,11 @@ export default function App() {
   useScrollama({ step: '.story-step', offset: 0.5, onStepEnter });
 
   // Keep main.jsx keyboard handler in sync with the active step
-  useEffect(() => { window.__activeStep = activeGlobal; }, [activeGlobal]);
+  useEffect(() => {
+    window.__activeStep = activeGlobal;
+    // Also sync __targetStep so Scrollama re-anchors it after natural scrolling
+    if (activeGlobal >= 0) window.__targetStep = activeGlobal;
+  }, [activeGlobal]);
 
   const current = activeGlobal >= 0 ? SCROLL_STEPS[activeGlobal] : null;
   const section = current?.section ?? storySections[0];

@@ -46,8 +46,19 @@ window.addEventListener('keydown', (e) => {
   if (!el) return;
 
   lenis.resize(); // ensure limit is calculated
-  const targetY = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35;
-  lenis.scrollTo(Math.max(0, targetY), { duration: 1.0 });
+  const rect = el.getBoundingClientRect();
+  const targetY = rect.top + window.scrollY - window.innerHeight * 0.35;
+  const finalY = Math.max(0, targetY);
+  console.log('[KEY NAV]', {
+    key: e.key,
+    targetStep: window.__targetStep,
+    lenisLimit: lenis.limit,
+    scrollY: window.scrollY,
+    rectTop: rect.top,
+    targetY,
+    finalY,
+  });
+  lenis.scrollTo(finalY, { duration: 1.0 });
 }, { capture: true });
 // ────────────────────────────────────────────────────────────────────────
 

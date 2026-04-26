@@ -53,11 +53,17 @@ export default function App() {
   const toggleExpand = (key) =>
     setExpandedSteps((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Scroll to a specific global step index
+  // Scroll to a specific global step index via Lenis so smooth scroll works
   const scrollToStep = useCallback((idx) => {
     const clamped = Math.max(0, Math.min(SCROLL_STEPS.length - 1, idx));
-    document.querySelectorAll('.story-step')[clamped]
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const el = document.querySelectorAll('.story-step')[clamped];
+    if (!el) return;
+    const lenis = window.__lenis;
+    if (lenis) {
+      lenis.scrollTo(el, { offset: -window.innerHeight * 0.25, duration: 1.0 });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }, []);
 
   // Keyboard up/down navigation between sub-steps

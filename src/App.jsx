@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 // NOTE: keyboard arrow navigation lives in main.jsx (direct lenis reference, no React lifecycle)
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
   FeedForwardDiagram, BlockDiagram, GenerationDiagram, TrainingDiagram,
 } from './components/diagrams/index';
-import { ChapterNav } from './components/ProgressNav/ProgressNav';
+import { ChapterNav, MobileNav } from './components/ProgressNav/ProgressNav';
 import { CodeBlock } from './components/CodeBlock/CodeBlock';
 import { useScrollama } from './hooks/useScrollama';
 import { useScrollProgress } from './hooks/useScrollProgress';
@@ -40,6 +40,10 @@ const SCROLL_STEPS = storySections.flatMap((section, sIdx) =>
 export default function App() {
   const [activeGlobal, setActiveGlobal] = useState(-1);
   const [expandedSteps, setExpandedSteps] = useState({});
+  const [prevSection, setPrevSection] = useState(null);
+  const [isCrossfading, setIsCrossfading] = useState(false);
+  const crossfadeTimerRef = useRef(null);
+  const prevSectionIdRef = useRef(null);
   const scrollProgress = useScrollProgress();
 
   const onStepEnter = useCallback(({ index }) => setActiveGlobal(index), []);
@@ -54,6 +58,21 @@ export default function App() {
 
   const current = activeGlobal >= 0 ? SCROLL_STEPS[activeGlobal] : null;
   const section = current?.section ?? storySections[0];
+
+  // Crossfade: when section changes, keep old diagram visible while new one fades in
+  useEffect(() => {
+    if (prevSectionIdRef.current && prevSectionIdRef.current !== section.id) {
+      const prev = storySections.find((s) => s.id === prevSectionIdRef.current);
+      setPrevSection(prev ?? null);
+      setIsCrossfading(true);
+      clearTimeout(crossfadeTimerRef.current);
+      crossfadeTimerRef.current = setTimeout(() => {
+        setPrevSection(null);
+        setIsCrossfading(false);
+      }, 420);
+    }
+    prevSectionIdRef.current = section.id;
+  }, [section.id]);
   const stepIndex = current?.stepIndex ?? 0;
   const sectionIndex = current?.sectionIndex ?? -1;
   const DiagramComponent = DIAGRAM_MAP[section.id];
@@ -75,6 +94,11 @@ export default function App() {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
+
+  const goToSection = useCallback((sIdx) => {
+    const target = SCROLL_STEPS.findIndex((s) => s.sectionIndex === sIdx);
+    scrollToStep(target);
+  }, [scrollToStep]);
 
   return (
     <>
@@ -183,6 +207,14 @@ export default function App() {
               </div>
             </div>
             <div className="diagram-canvas">
+              {isCrossfading && prevSection && (() => {
+                const PrevDiagram = DIAGRAM_MAP[prevSection.id];
+                return PrevDiagram ? (
+                  <div key={`${prevSection.id}-exit`} className="diagram-canvas-inner is-exiting">
+                    <PrevDiagram step={0} />
+                  </div>
+                ) : null;
+              })()}
               <div key={section.id} className="diagram-canvas-inner">
                 {DiagramComponent && <DiagramComponent step={stepIndex} />}
               </div>
@@ -191,6 +223,13 @@ export default function App() {
         </aside>
 
       </main>
+
+      <MobileNav
+        sections={storySections}
+        currentSection={sectionIndex}
+        onPrev={() => goToSection(Math.max(0, sectionIndex - 1))}
+        onNext={() => goToSection(Math.min(storySections.length - 1, sectionIndex + 1))}
+      />
     </>
   );
 }

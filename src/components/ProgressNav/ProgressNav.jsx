@@ -1,5 +1,30 @@
 import './ProgressNav.css';
 
+export function MobileNav({ sections, currentSection, onPrev, onNext }) {
+  const idx = currentSection >= 0 ? currentSection : 0;
+  const section = sections[idx] ?? sections[0];
+  const canPrev = idx > 0;
+  const canNext = idx < sections.length - 1;
+
+  return (
+    <nav className="mobile-nav" aria-label="Section navigation">
+      <button
+        className="mobile-nav-btn"
+        onClick={onPrev}
+        disabled={!canPrev}
+        aria-label="Previous section"
+      >← Prev</button>
+      <span className={`mobile-nav-label ${section.accent}`}>{section.title}</span>
+      <button
+        className="mobile-nav-btn"
+        onClick={onNext}
+        disabled={!canNext}
+        aria-label="Next section"
+      >Next →</button>
+    </nav>
+  );
+}
+
 export function ChapterNav({ sections, currentSection, currentSubStep, onChapterClick, onSubStepClick }) {
   return (
     <nav className="chapter-nav" aria-label="Chapter navigation">

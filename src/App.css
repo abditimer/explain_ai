@@ -54,6 +54,35 @@
   max-width: 44ch;
   line-height: 1.7;
   margin: 0;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.story-hero-sub.is-visible { opacity: 1; }
+
+/* ── Typewriter ── */
+.typewriter-line {
+  display: block;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes cursorFadeOut {
+  to { opacity: 0; }
+}
+
+.typewriter-cursor::after {
+  content: '|';
+  font-weight: 300;
+  color: #60a5fa;
+  animation: cursorBlink 0.65s step-end infinite;
+}
+
+.typewriter-cursor.is-done::after {
+  /* blink 3 times (~2s), then fade */
+  animation: cursorBlink 0.65s step-end 3, cursorFadeOut 0.4s ease 1.95s forwards;
 }
 
 .hero-scroll-hint {

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useTypewriter } from './hooks/useTypewriter';
 // NOTE: keyboard arrow navigation lives in main.jsx (direct lenis reference, no React lifecycle)
 import {
   IntroDiagram, TokenizationDiagram, EmbeddingsDiagram, AttentionDiagram,
@@ -45,6 +46,8 @@ export default function App() {
   const crossfadeTimerRef = useRef(null);
   const prevSectionIdRef = useRef(null);
   const scrollProgress = useScrollProgress();
+  const { displayed: heroLines, activeLine: heroActiveLine, done: heroDone } =
+    useTypewriter(['How Transformers', 'Are Built']);
 
   const onStepEnter = useCallback(({ index }) => setActiveGlobal(index), []);
   useScrollama({ step: '.story-step', offset: 0.5, onStepEnter });
@@ -125,8 +128,16 @@ export default function App() {
         {/* ── LEFT: scrolling narrative + inline code ── */}
         <div className="story-column">
           <div className="story-hero">
-            <h1 className="story-hero-title">How Transformers<br />Are Built</h1>
-            <p className="story-hero-sub">Scroll to explore the architecture behind GPT — from raw text to generated language.</p>
+            <h1 className="story-hero-title" aria-label="How Transformers Are Built">
+              {heroLines.map((text, i) => (
+                <span key={i} className="typewriter-line">
+                  {text || ' '}
+                  {heroActiveLine === i && <span className="typewriter-cursor" aria-hidden="true" />}
+                  {heroDone && i === heroLines.length - 1 && <span className="typewriter-cursor is-done" aria-hidden="true" />}
+                </span>
+              ))}
+            </h1>
+            <p className={`story-hero-sub${heroDone ? ' is-visible' : ''}`}>Scroll to explore the architecture behind GPT — from raw text to generated language.</p>
             <div className="hero-scroll-hint">
               <span className="scroll-hint-line" />
               <span className="scroll-hint-text">scroll</span>

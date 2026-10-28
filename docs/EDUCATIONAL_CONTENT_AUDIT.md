@@ -15,6 +15,7 @@ The implementation choices shown include learned token and absolute position emb
 - Causal masking prevents a position from using future positions in this next-token decoder. It does not mean all transformer models must use causal masks.
 - Attention weights are normalized score weights used to mix value vectors. They are not by themselves a complete explanation of a model's answer or a reliable measure of human-readable “importance.”
 - GELU is a smooth nonlinear activation, not a binary on/off gate. A GELU layer does not by itself establish sparse activations.
+- The feed-forward network expands and projects each position independently, returning an output at the model width for the residual addition. The dimensions alone do not guarantee a broadly “richer” representation, so the story states the output width and block connection directly.
 - Residual connections provide an additive path through a sublayer and can help optimization. They do not guarantee successful training or eliminate vanishing gradients.
 - Temperature rescales logits before softmax. With positive temperature, lower values make the distribution more concentrated and higher values make it flatter. Temperature does not intrinsically control truth or creativity.
 - Cross-entropy for a target token is `-log(p_target)`; averaged cross-entropy is lower when the model assigns higher probability to target tokens on average. It is not a general guarantee of better language performance.

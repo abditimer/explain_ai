@@ -164,7 +164,7 @@ export const storySections = [
       { id: 'feedforward.beat-01', text: 'The attention output (768-dim) enters a two-layer MLP. Each position is processed independently — no cross-token mixing here.' },
       { id: 'feedforward.beat-02', text: 'A linear layer expands 768 → 3,072 (4×). This wide hidden space lets the model express complex transformations.' },
       { id: 'feedforward.beat-03', text: 'GELU adds a smooth nonlinear operation. It does not simply switch neurons off, and this description does not imply sparse activations.' },
-      { id: 'feedforward.beat-04', text: 'A second linear layer compresses 3,072 → 768. The result: a richer representation than attention alone could produce.' },
+      { id: 'feedforward.beat-04', text: 'A second linear layer projects 3,072 → 768. The MLP output returns to the width of the block’s residual stream.' },
     ],
     snippetId: 'feedforward',
     operations: {

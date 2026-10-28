@@ -738,6 +738,7 @@ html, body { background: var(--paper); color: var(--spruce); }
   .presentation-controls { gap: 0.25rem; padding: 0.25rem; }
   .presentation-controls button { min-height: 2.1rem; padding: 0.35rem 0.4rem; font-size: 0.68rem; }
   .experience-shell.is-presentation { padding-top: 0; }
+  .experience-shell.is-presentation { grid-template-columns: minmax(0, 1fr); }
   .is-presentation .diagram-column { top: 0; height: clamp(250px, 58vw, 340px); min-height: 250px; max-height: 340px; padding: 0.65rem; }
   .is-presentation .story-step.is-stage-active { min-height: 68vh; padding-top: 3rem; }
 }

@@ -29,3 +29,7 @@ These build outputs are within the stated budgets. Diagram components are split 
 - Reduced-motion mode should settle immediately without running the code-to-diagram animation.
 
 Runtime frame and long-task measurements still require browser performance profiling; this document records the targets, not a claim that those runtime budgets have been measured.
+
+## Runtime spot check
+
+A headless Chrome 156 production-preview pass on 2026-10-28 navigated all eight chapter controls while collecting `requestAnimationFrame` intervals and the Long Tasks API. Across 458 sampled frame intervals, the 95th-percentile gap was 16.7 ms, the maximum was 33.3 ms, and none exceeded 50 ms. The Long Tasks API reported zero tasks. This single headless-machine spot check is evidence for the sampled route only; it does not cover other hardware, browsers, reduced-motion rendering, or a rendered visual review.

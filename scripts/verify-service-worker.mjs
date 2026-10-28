@@ -6,6 +6,14 @@ const source = await readFile(new URL('../public/service-worker.js', import.meta
 const listeners = new Map();
 const cacheStore = new Map();
 const scope = 'https://example.test/explain_ai/';
+const precacheFiles = [
+  'assets/index.js',
+  'assets/GenerationDiagram.js',
+  'assets/gpt2_next_token_logits.f32',
+  'docs/code/gpt2_next_token.json',
+  'implementation.html',
+  'sources.html',
+];
 let networkOnline = true;
 let skippedWaiting = false;
 let clientsClaimed = false;
@@ -18,6 +26,7 @@ class MemoryCache {
     if (!response.ok) throw new Error(`Cannot cache ${requestKey(request)}`);
     await this.put(request, response.clone());
   }
+  async addAll(requests) { await Promise.all(requests.map((request) => this.add(request))); }
   async put(request, response) { this.entries.set(requestKey(request), response.clone()); }
   async match(request) { return this.entries.get(requestKey(request))?.clone(); }
 }
@@ -33,7 +42,11 @@ const caches = {
 
 async function fakeFetch(request) {
   if (!networkOnline) throw new TypeError('Network unavailable');
-  return new Response(`network:${requestKey(request)}`, { status: 200 });
+  const url = requestKey(request);
+  if (url === `${scope}precache-manifest.json`) {
+    return new Response(JSON.stringify(precacheFiles), { status: 200, headers: { 'content-type': 'application/json' } });
+  }
+  return new Response(`network:${url}`, { status: 200 });
 }
 
 const self = {
@@ -61,22 +74,39 @@ async function dispatchFetch(request) {
 
 await dispatchLifecycle('install');
 assert.equal(skippedWaiting, true, 'install should activate without waiting for the old worker');
-const cache = await caches.open('explain-ai-static-v1');
+const cache = await caches.open('explain-ai-static-v2');
 const shell = await cache.match(scope);
 assert.equal(await shell.text(), `network:${scope}`, 'install should cache the app shell');
+for (const file of precacheFiles) {
+  const cachedAsset = await cache.match(`${scope}${file}`);
+  assert.ok(cachedAsset, `install should precache ${file}`);
+}
 
 await dispatchLifecycle('activate');
 assert.equal(clientsClaimed, true, 'activate should claim controlled clients');
-assert.deepEqual(await caches.keys(), ['explain-ai-static-v1'], 'activation should remove stale app caches');
+assert.deepEqual(await caches.keys(), ['explain-ai-static-v2'], 'activation should remove stale app caches');
 
-const logitsRequest = { method: 'GET', url: `${scope}docs/code/gpt2_next_token_logits.f32`, mode: 'cors' };
-const online = await dispatchFetch(logitsRequest);
-assert.equal(online.intercepted, true);
-assert.equal(await online.response.text(), `network:${logitsRequest.url}`);
+const cachedFiles = [
+  'assets/index.js',
+  'assets/GenerationDiagram.js',
+  'assets/gpt2_next_token_logits.f32',
+  'docs/code/gpt2_next_token.json',
+  'implementation.html',
+  'sources.html',
+];
+for (const file of cachedFiles) {
+  const request = { method: 'GET', url: `${scope}${file}`, mode: 'cors' };
+  const online = await dispatchFetch(request);
+  assert.equal(online.intercepted, true);
+  assert.equal(await online.response.text(), `network:${request.url}`);
+}
 
 networkOnline = false;
-const cached = await dispatchFetch(logitsRequest);
-assert.equal(await cached.response.text(), `network:${logitsRequest.url}`, 'offline checkpoint logits should use their cached response');
+for (const file of cachedFiles) {
+  const request = { method: 'GET', url: `${scope}${file}`, mode: 'cors' };
+  const cached = await dispatchFetch(request);
+  assert.equal(await cached.response.text(), `network:${request.url}`, `offline request should use cached ${file}`);
+}
 
 const deepNavigation = { method: 'GET', url: `${scope}chapter/attention`, mode: 'navigate' };
 const fallback = await dispatchFetch(deepNavigation);
@@ -89,4 +119,4 @@ assert.equal(outsideScope.intercepted, false, 'requests outside the registration
 assert.equal(crossOrigin.intercepted, false, 'cross-origin requests should pass through');
 assert.equal(postRequest.intercepted, false, 'non-GET requests should pass through');
 
-console.log('Verified service worker install, activation, network-first cache fallback, deep navigation recovery, and request scope.');
+console.log('Verified offline asset manifest install, full-site precaching, offline recovery for code/diagrams/logits/pages, deep navigation fallback, stale-cache cleanup, and request scope.');

@@ -1,10 +1,19 @@
-const CACHE_NAME = 'explain-ai-static-v1';
+const CACHE_NAME = 'explain-ai-static-v2';
 
 self.addEventListener('install', (event) => {
   const appShell = new URL('./', self.registration.scope).toString();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.add(appShell))
+      .then(async (cache) => {
+        await cache.add(appShell);
+        const manifestUrl = new URL('./precache-manifest.json', self.registration.scope).toString();
+        const manifestResponse = await fetch(manifestUrl);
+        if (!manifestResponse.ok) return;
+        const assets = await manifestResponse.json();
+        if (!Array.isArray(assets)) throw new Error('Offline asset manifest must contain a list.');
+        const urls = assets.map((asset) => new URL(asset, self.registration.scope).toString());
+        await cache.addAll(urls);
+      })
       .then(() => self.skipWaiting())
   );
 });

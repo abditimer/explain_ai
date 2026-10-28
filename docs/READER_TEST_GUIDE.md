@@ -6,6 +6,8 @@ This is a short moderated comprehension check for people who have not studied tr
 
 Allow 8–12 minutes per reader. Ask the participant to think aloud while using the site; do not record audio or collect identifying information. Note the task, where they hesitated, what they expected, what they did, and their own explanation.
 
+Use the [anonymous session record](READER_TEST_RECORD_TEMPLATE.md) for consistent notes across the five sessions.
+
 1. “Explore the page as you normally would. Stop when you feel you understand how the example continues.”
 2. “In your own words, what happens to the sentence between its words and the next-token choice?”
 3. “Choose one query token in the attention chapter. What is it comparing, and why are some positions unavailable?”

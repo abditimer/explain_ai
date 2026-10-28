@@ -14,7 +14,7 @@ Target CSS Design Awards (CSSDA), submitting as a solo designer with one collabo
 
 ## Readiness
 
-The public URL serves the redesign and checkpoint-backed next-token chart deployed from commit `7e344ab`. The project has a social preview, concise project narrative, and a production build that passes. It is **not ready to submit yet**: the required screenshot preparation and independent user testing remain. Headless Chrome checks cover responsive widths, 200% page zoom, and interaction timing; Safari verification remains open because remote automation is disabled in Safari settings. The uncredited JPEG has been removed from the site and production assets. No submission was made and no fee was paid.
+The public URL serves the redesign and checkpoint-backed next-token chart deployed from commit `31a533f`. The project has a social preview, concise project narrative, and a production build that passes. It is **not ready to submit yet**: the required screenshot preparation and independent user testing remain. Headless Chrome checks cover responsive widths, 200% page zoom, and interaction timing; Safari verification remains open because remote automation is disabled in Safari settings. The uncredited JPEG has been removed from the site and production assets. No submission was made and no fee was paid.
 
 ## Draft description (within the 130-character form limit)
 

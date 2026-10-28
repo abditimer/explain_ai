@@ -298,7 +298,7 @@ export default function App() {
   }, [presentationMode, presentationBeatId, prefersReducedMotion]);
 
   useEffect(() => {
-    if (!currentOperation?.transitionToDiagram || prefersReducedMotion || window.matchMedia('(max-width: 900px)').matches) return undefined;
+    if (!currentOperation?.transitionToDiagram || prefersReducedMotion || window.matchMedia('(max-width: 1062px)').matches) return undefined;
     const sourceLine = document.getElementById(`${currentOperation.id}-line-${currentOperation.lines[0]}`);
     const targetObject = Array.from(document.querySelectorAll('[data-object-id]'))
       .find((element) => element.dataset.objectId === currentOperation.diagramObjectIds[0]);

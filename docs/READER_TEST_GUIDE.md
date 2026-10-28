@@ -1,6 +1,6 @@
 # Independent reader test
 
-This is a short moderated comprehension check for people who have not studied transformer models. It should be run with five readers individually before treating the experience as clear. The moderator should observe without explaining the answer or correcting the reader.
+This is a short moderated comprehension check for people who have not studied transformer models. It should be run with five readers individually before treating the experience as clear. The moderator should observe without explaining the answer or correcting the reader. A copyable [participant invitation](READER_TEST_INVITE.md) is ready.
 
 ## Session
 

@@ -29,11 +29,11 @@
       <a class="back" href="./">← Back to the explanation</a>
       <p class="eyebrow">SOURCES &amp; IMPLEMENTATION NOTES</p>
       <h1>What this example shows—and what it doesn’t.</h1>
-      <p>This project follows one sentence through a small teaching implementation of a decoder-only transformer. The sources below establish background and reference configurations; they do not imply that this project has trained or run a pretrained model.</p>
+      <p>This project follows one sentence through a small teaching implementation of a decoder-only transformer. One separate, pinned GPT-2 Small checkpoint run is also recorded so the next-token chapter can show real full-vocabulary scores and probabilities.</p>
 
       <h2>The teaching model</h2>
       <p>The code is GPT-2 Small–style: 12 blocks, width 768, 12 attention heads, a 50,257-entry GPT-2 vocabulary, and an intentionally shorter 256-token context. It uses learned token and absolute-position embeddings, causal self-attention, pre-LayerNorm sublayers, residual additions, GELU, and a final LayerNorm.</p>
-      <p class="note">No pretrained weights are loaded. Parameters are randomly initialised. The attention scores, embedding bars, generation logits and probabilities, candidate continuations, and training curve are illustrative or editorial examples—not model outputs.</p>
+      <p class="note">The teaching implementation loads no pretrained weights; its parameters are randomly initialised. Its attention scores, embedding bars, and training curve are illustrative. The next-token chart is different: it shows recorded output from a separate pretrained GPT-2 Small checkpoint, identified and hashed below. Reader selection of a displayed token is still an explicit choice, not model sampling.</p>
       <p>The code differs from released GPT-2 Small in some choices, including an untied, bias-free output projection. The 256-token context also differs from GPT-2 Small’s commonly documented 1,024 positions. These are implementation details, not requirements of transformers generally.</p>
 
       <h2>Further reading</h2>
@@ -46,7 +46,8 @@
       </ul>
 
       <h2>Reproducible examples</h2>
-      <p>The recorded token IDs and pieces are in <a href="./docs/code/tokenizer_demo.json">tokenizer_demo.json</a>. The three-candidate temperature example is calculated from fixed toy logits <code>[2, 1, 0]</code> and recorded in <a href="./docs/code/generation_demo.json">generation_demo.json</a>. Both artifacts include provenance; neither contains checkpoint inference.</p>
+      <p>The recorded token IDs and pieces are in <a href="./docs/code/tokenizer_demo.json">tokenizer_demo.json</a>. Full-vocabulary logits for the same prefix were calculated with <a href="https://huggingface.co/openai-community/gpt2/tree/3fe9a169f57f3ca0cac0b9133351644193b9dd3c">openai-community/gpt2 at pinned revision 3fe9a169</a> (MIT license). The <a href="./docs/code/gpt2_next_token.json">checkpoint output record</a> includes the model-file SHA-256, exact token IDs, software versions, and the <a href="./docs/code/gpt2_next_token_logits.f32">50,257 float32 logits</a> in token-ID order. Reproduce it with <code>npm run record:gpt2-output</code>; the command downloads the 548 MB checkpoint into the local Hugging Face cache and does not include those weights in the site.</p>
+      <p>The earlier three-candidate toy softmax remains in <a href="./docs/code/generation_demo.json">generation_demo.json</a> as an illustrative calculation, not as a model result.</p>
       <p>The complete teaching implementation is available in the <a href="./implementation.html">source browser</a>. The detailed <a href="https://github.com/abditimer/explain_ai/blob/main/docs/EDUCATIONAL_CONTENT_AUDIT.md">educational content audit</a> documents additional simplifications and accessibility notes.</p>
 
       <h2>Credits and asset licenses</h2>

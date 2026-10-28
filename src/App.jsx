@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useCallback, useEffect, useReducer } from 'react';
+import { lazy, Suspense, useState, useCallback, useEffect, useMemo, useReducer } from 'react';
 import { ChapterNav } from './components/ProgressNav/ProgressNav';
 import { CodeBlock } from './components/CodeBlock/CodeBlock';
 import { useScrollama } from './hooks/useScrollama';
@@ -6,7 +6,7 @@ import { useScrollProgress } from './hooks/useScrollProgress';
 import { useNarrativeNavigation } from './hooks/useNarrativeNavigation';
 import { storySections } from './data/story';
 import { codeBlocks } from './data/codeBlocks';
-import { EXAMPLE_CANDIDATES, TOY_LOGITS, getToyProbabilities } from './data/generationDemo';
+import { CHECKPOINT_OUTPUT, DISPLAY_CANDIDATES, getCandidateProbabilities, loadCheckpointLogits } from './data/generationDemo';
 import { ILLUSTRATIVE_ATTENTION_SCORES, ILLUSTRATIVE_ATTENTION_WEIGHTS } from './data/attentionDemo.js';
 import {
   initialNarrativeState,
@@ -45,7 +45,7 @@ function findSnippet(id) {
   return codeBlocks.find((b) => b.id === id) ?? null;
 }
 
-function getDiagramDescription(sectionId, stepIndex, progress, experimentState) {
+function getDiagramDescription(sectionId, stepIndex, progress, experimentState, generationProbabilities) {
   const pieces = tokenizerDemo.token_pieces;
   const ids = tokenizerDemo.token_ids;
   const tokenPairs = pieces.map((piece, index) => `${JSON.stringify(piece)}, ID ${ids[index]}`).join('; ');
@@ -96,7 +96,10 @@ function getDiagramDescription(sectionId, stepIndex, progress, experimentState) 
         ? 'A schematic pullback shows the same token position passing through 12 separately parameterised blocks. The pink path tracks that position, not its numeric values; each block transforms its 768-dimensional representation.'
         : 'One block applies LayerNorm, attention, dropout, then adds the original input through a residual connection. It then applies a second LayerNorm, feed-forward network, dropout, and another residual addition. A label identifies this as one of 12 separately parameterised blocks.';
     case 'generation':
-      return `The five-token context is ${tokenPairs}. A three-example toy chart uses logits ${TOY_LOGITS.join(', ')} for editorial candidate tokens ${EXAMPLE_CANDIDATES.map((candidate) => `${JSON.stringify(candidate.text)}, ID ${candidate.tokenId}`).join('; ')}. This is not the model's full 50,257-token output. The current temperature changes the illustrative probabilities. Any appended continuation is the reader’s explicit choice, with its token ID announced separately.`;
+      if (!generationProbabilities) {
+        return `The five-token context is ${tokenPairs}. The complete recorded output from the pinned GPT-2 Small checkpoint is loading; the teaching implementation shown beside it is a separate randomly initialized model.`;
+      }
+      return `The five-token context is ${tokenPairs}. This chart ranks five next-token pieces from the pinned pretrained GPT-2 Small checkpoint. Their raw logits at temperature 1 and probabilities at temperature ${experimentState.temperature.toFixed(1)} are ${generationProbabilities.map((candidate) => `${JSON.stringify(candidate.piece)}: logit ${candidate.logit.toFixed(2)}, probability ${(candidate.probability * 100).toFixed(2)} percent`).join('; ')}. Each probability is normalized over all ${CHECKPOINT_OUTPUT.model_config.vocabulary_size.toLocaleString()} vocabulary logits. Positive temperature changes probabilities but not their order. The reader explicitly chooses whether to append a token; it is not a sampled model continuation.`;
     case 'training':
       return 'A schematic line chart has training step on the horizontal axis and loss on the vertical axis; the drawn loss trends downward but is not recorded training data. Text labels identify the curve as illustrative and mark the backpropagation and Adam update stage.';
     default:
@@ -138,6 +141,8 @@ export default function App() {
   );
   const [narrativeState, dispatchNarrative] = useReducer(narrativeReducer, initialNarrativeState);
   const [experimentState, dispatchExperiment] = useReducer(experimentReducer, initialExperimentState);
+  const [generationLogits, setGenerationLogits] = useState(null);
+  const [generationLoadError, setGenerationLoadError] = useState('');
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
@@ -225,21 +230,33 @@ export default function App() {
   const currentOperation = current ? section.operations?.[current.beatId] : null;
   const sectionCode = findSnippet(currentOperation?.snippetId ?? section.snippetId);
   const presentationBeatId = current?.beatId;
+  const currentSceneId = current?.sceneId;
+
+  useEffect(() => {
+    if (currentSceneId !== 'generation' || generationLogits || generationLoadError) return undefined;
+    let isCurrent = true;
+    loadCheckpointLogits()
+      .then((logits) => { if (isCurrent) setGenerationLogits(logits); })
+      .catch((error) => { if (isCurrent) setGenerationLoadError(error.message); });
+    return () => { isCurrent = false; };
+  }, [currentSceneId, generationLoadError, generationLogits]);
+
+  const generationProbabilities = useMemo(
+    () => getCandidateProbabilities(generationLogits, experimentState.temperature),
+    [generationLogits, experimentState.temperature],
+  );
 
   const activeDiagramLabel = (() => {
-    const parts = [`Diagram: ${section.title}. ${section.summary}`, getDiagramDescription(section.id, stepIndex, diagramProgress, experimentState), current ? `Current step: ${current.text}` : ''];
+    const parts = [`Diagram: ${section.title}. ${section.summary}`, getDiagramDescription(section.id, stepIndex, diagramProgress, experimentState, generationProbabilities), current ? `Current step: ${current.text}` : ''];
     if (section.id === 'attention') {
       const selectedIndex = tokenizerDemo.token_ids.slice(0, 3).indexOf(experimentState.selectedTokenId ?? tokenizerDemo.token_ids[1]);
       const selectedPiece = tokenizerDemo.token_pieces[selectedIndex] ?? tokenizerDemo.token_pieces[1];
       parts.push(`Query token ${JSON.stringify(selectedPiece)} is selected. Attention values are illustrative, not model outputs.`);
     }
     if (section.id === 'generation') {
-      const probabilities = getToyProbabilities(experimentState.temperature)
-        .map((probability, index) => `${JSON.stringify(EXAMPLE_CANDIDATES[index].text)}: ${(probability * 100).toFixed(1)} percent`)
-        .join('; ');
-      parts.push(`Toy logits ${TOY_LOGITS.join(', ')} at temperature ${experimentState.temperature.toFixed(1)} give ${probabilities}. These are illustrative, not model outputs.`);
-      const selected = EXAMPLE_CANDIDATES.find((candidate) => candidate.tokenId === experimentState.selectedContinuationTokenId);
-      if (selected) parts.push(`The reader appended the example token ${JSON.stringify(selected.text)} with ID ${selected.tokenId}; the updated context is ${JSON.stringify(`${tokenizerDemo.input_text}${selected.text}`)}.`);
+      if (generationLoadError) parts.push(`The recorded checkpoint output could not be loaded: ${generationLoadError}`);
+      const selected = DISPLAY_CANDIDATES.find((candidate) => candidate.token_id === experimentState.selectedContinuationTokenId);
+      if (selected) parts.push(`The reader appended the checkpoint candidate ${JSON.stringify(selected.piece)} with ID ${selected.token_id}; the updated context is ${JSON.stringify(`${tokenizerDemo.input_text}${selected.piece}`)}. This choice is not a sampled continuation.`);
     }
     return parts.filter(Boolean).join(' ');
   })();
@@ -521,22 +538,31 @@ export default function App() {
                   max="2"
                   step="0.1"
                   value={experimentState.temperature}
-                  aria-valuetext={`${experimentState.temperature.toFixed(1)}; lower values sharpen the toy distribution, higher values flatten it`}
-                  aria-describedby="temperature-explanation"
+                  aria-valuetext={`${experimentState.temperature.toFixed(1)}; lower positive values sharpen the full GPT-2 checkpoint distribution, higher values flatten it`}
+                  aria-describedby={generationLoadError ? 'temperature-explanation generation-load-error' : 'temperature-explanation generation-probability-status'}
                   onChange={(event) => dispatchExperiment({ type: 'experiment/set-temperature', temperature: Number(event.target.value) })}
                 />
-                <p id="temperature-explanation">Lower positive values concentrate this toy distribution; higher values flatten it. These are illustrative scores, not model outputs.</p>
+                <p id="temperature-explanation">Lower positive values concentrate this checkpoint’s full-vocabulary distribution; higher values flatten it. Candidate probabilities are recomputed from all 50,257 logits.</p>
+                {generationLoadError && <p id="generation-load-error" role="status">The recorded probabilities could not load. Reconnect and refresh to retry the checksum-verified output.</p>}
+                {!generationLoadError && (
+                  <p id="generation-probability-status" className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">
+                    {generationProbabilities
+                      ? `At temperature ${experimentState.temperature.toFixed(1)}, the top five checkpoint tokens are ${generationProbabilities.map((candidate) => `${JSON.stringify(candidate.piece)}, ID ${candidate.token_id}, logit ${candidate.logit.toFixed(2)}, ${(candidate.probability * 100).toFixed(2)} percent`).join('; ')}. Probabilities are normalized across all 50,257 vocabulary tokens.`
+                      : 'Loading checksum-verified next-token probabilities from the pinned GPT-2 Small checkpoint.'}
+                  </p>
+                )}
                 {stepIndex > 3 && (
-                  <div className="continuation-controls" role="group" aria-label="Choose an example next token to append">
-                    <span>Choose an example next token</span>
-                    {EXAMPLE_CANDIDATES.map((candidate) => (
+                  <div className="continuation-controls" role="group" aria-label="Choose a checkpoint candidate to append">
+                    <span>Choose a checkpoint candidate</span>
+                    {DISPLAY_CANDIDATES.map((candidate, index) => (
                       <button
                         type="button"
-                        key={candidate.tokenId}
-                        aria-pressed={experimentState.selectedContinuationTokenId === candidate.tokenId}
-                        onClick={() => dispatchExperiment({ type: 'experiment/select-continuation', tokenId: candidate.tokenId })}
+                        key={candidate.token_id}
+                        aria-label={`Append ${JSON.stringify(candidate.piece)}, token ID ${candidate.token_id}, logit ${candidate.logit.toFixed(2)}${generationProbabilities ? `, ${(generationProbabilities[index].probability * 100).toFixed(2)} percent at this temperature` : ''}`}
+                        aria-pressed={experimentState.selectedContinuationTokenId === candidate.token_id}
+                        onClick={() => dispatchExperiment({ type: 'experiment/select-continuation', tokenId: candidate.token_id })}
                       >
-                        {candidate.text} · ID {candidate.tokenId}
+                        {candidate.display_piece} · ID {candidate.token_id}
                       </button>
                     ))}
                   </div>
@@ -566,6 +592,8 @@ export default function App() {
                           selectedTokenId={experimentState.selectedTokenId}
                           temperature={experimentState.temperature}
                           selectedContinuationTokenId={experimentState.selectedContinuationTokenId}
+                          checkpointLogits={generationLogits}
+                          checkpointError={generationLoadError}
                         />
                       </Suspense>
                     </div>

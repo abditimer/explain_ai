@@ -1,0 +1,121 @@
+{
+  "kind": "checkpoint_next_token_logits",
+  "input_text": "The cat sat on the",
+  "input_token_ids": [
+    464,
+    3797,
+    3332,
+    319,
+    262
+  ],
+  "tokenizer": "GPT-2 byte-level BPE (tiktoken 0.9.0)",
+  "model": "openai-community/gpt2",
+  "model_revision": "3fe9a169f57f3ca0cac0b9133351644193b9dd3c",
+  "model_license": "MIT",
+  "model_config": {
+    "layers": 12,
+    "width": 768,
+    "heads": 12,
+    "context_length": 1024,
+    "vocabulary_size": 50257,
+    "output_embeddings_tied_to_token_embeddings": true
+  },
+  "inference": {
+    "device": "CPU",
+    "dtype": "float32 checkpoint logits; float64 softmax accumulation",
+    "torch_num_threads": 2,
+    "evaluation_mode": true,
+    "temperature": 1.0,
+    "top_k": null,
+    "input_is_truncated": false,
+    "torch_version": "2.7.1",
+    "transformers_version": "4.52.4",
+    "python_version": "3.12.12"
+  },
+  "checkpoint_file": {
+    "name": "model.safetensors",
+    "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707",
+    "size_bytes": 548105171
+  },
+  "logits_file": {
+    "name": "gpt2_next_token_logits.f32",
+    "dtype": "float32 little-endian",
+    "count": 50257,
+    "size_bytes": 201028,
+    "sha256": "b2fea177d20573236e8f5e9b96cb1b4b88af5312bf3f381b91eb55344683608e"
+  },
+  "provenance": {
+    "generator": "docs/code/record_gpt2_output.py",
+    "generator_sha256": "409b04a11e9df7639af7a89e20226576276a8210c4f61fba28b31176e7b372c2",
+    "tokenizer_artifact": "docs/code/tokenizer_demo.json",
+    "tokenizer_artifact_sha256": "d93e923f585dc55b5ef2cfddc996edfdc97f8d5d04f4bd86d7294829a24de94a"
+  },
+  "top_tokens_at_temperature_1": [
+    {
+      "rank": 1,
+      "token_id": 4314,
+      "piece": " floor",
+      "display_piece": "␠floor",
+      "logit": -80.65409851074219,
+      "probability": 0.07636004397707596
+    },
+    {
+      "rank": 2,
+      "token_id": 3996,
+      "piece": " bed",
+      "display_piece": "␠bed",
+      "logit": -80.81092834472656,
+      "probability": 0.06527634638945064
+    },
+    {
+      "rank": 3,
+      "token_id": 18507,
+      "piece": " couch",
+      "display_piece": "␠couch",
+      "logit": -80.99923706054688,
+      "probability": 0.05407224511825066
+    },
+    {
+      "rank": 4,
+      "token_id": 2323,
+      "piece": " ground",
+      "display_piece": "␠ground",
+      "logit": -81.03654479980469,
+      "probability": 0.05209209895442857
+    },
+    {
+      "rank": 5,
+      "token_id": 5743,
+      "piece": " edge",
+      "display_piece": "␠edge",
+      "logit": -81.12165832519531,
+      "probability": 0.04784180124242013
+    },
+    {
+      "rank": 6,
+      "token_id": 7624,
+      "piece": " bench",
+      "display_piece": "␠bench",
+      "logit": -81.5358657836914,
+      "probability": 0.03161691625318969
+    },
+    {
+      "rank": 7,
+      "token_id": 3084,
+      "piece": " table",
+      "display_piece": "␠table",
+      "logit": -81.539306640625,
+      "probability": 0.03150831391738086
+    },
+    {
+      "rank": 8,
+      "token_id": 34902,
+      "piece": " sofa",
+      "display_piece": "␠sofa",
+      "logit": -81.62869262695312,
+      "probability": 0.02881411751597377
+    }
+  ],
+  "probability_sum": 1.0000000000000024,
+  "note": "These are measured outputs from the pinned pretrained GPT-2 Small checkpoint, not from the separately documented randomly initialized teaching implementation. The binary file contains one logit for each vocabulary token in token-ID order."
+}

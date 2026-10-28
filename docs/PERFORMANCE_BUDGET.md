@@ -6,19 +6,21 @@
 - Initial CSS: at most 8 KB gzip.
 - Locally bundled Latin variable fonts combined: at most 70 KB WOFF2.
 - Each deferred diagram scene: at most 15 KB gzip, excluding the shared diagram runtime.
+- Deferred full-vocabulary logits: at most 250 KB uncompressed, loaded only when the next-token chapter is visited.
 - The HTML shell should remain below 5 KB before compression.
 
 ## Current production build snapshot
 
 Measured with `npm run build` on 2026-10-28:
 
-- App entry: 94.95 KB gzip.
-- CSS: 5.26 KB gzip.
+- App entry before the checkpoint data integration: 94.95 KB gzip.
+- App entry after the checkpoint data integration: 96.33 KB gzip.
+- CSS: 5.45 KB gzip.
 - Fraunces and Manrope WOFF2: 61.46 KB combined.
-- Largest scene component: training at 3.66 KB gzip; the shared diagram setup chunk is 3.96 KB gzip.
+- Largest scene component: training at 3.66 KB gzip; the shared diagram setup chunk is 3.96 KB gzip. The next-token diagram is 2.02 KB gzip.
 - HTML shell: 3.39 KB before compression.
 
-These build outputs are within the stated budgets. Diagram components are split into separate chunks and loaded when their scene is first visited; visited diagrams remain mounted for reverse navigation.
+These build outputs are within the stated budgets. Diagram components are split into separate chunks and loaded when their scene is first visited; visited diagrams remain mounted for reverse navigation. The recorded checkpoint logits are a separate 201,028-byte float32 asset, fetched only on first entry to the next-token chapter and then cached by the service worker.
 
 ## Runtime motion budgets
 

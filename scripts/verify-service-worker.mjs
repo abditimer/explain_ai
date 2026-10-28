@@ -69,14 +69,14 @@ await dispatchLifecycle('activate');
 assert.equal(clientsClaimed, true, 'activate should claim controlled clients');
 assert.deepEqual(await caches.keys(), ['explain-ai-static-v1'], 'activation should remove stale app caches');
 
-const jsRequest = { method: 'GET', url: `${scope}assets/app.js`, mode: 'cors' };
-const online = await dispatchFetch(jsRequest);
+const logitsRequest = { method: 'GET', url: `${scope}docs/code/gpt2_next_token_logits.f32`, mode: 'cors' };
+const online = await dispatchFetch(logitsRequest);
 assert.equal(online.intercepted, true);
-assert.equal(await online.response.text(), `network:${jsRequest.url}`);
+assert.equal(await online.response.text(), `network:${logitsRequest.url}`);
 
 networkOnline = false;
-const cached = await dispatchFetch(jsRequest);
-assert.equal(await cached.response.text(), `network:${jsRequest.url}`, 'offline requests should use their cached response');
+const cached = await dispatchFetch(logitsRequest);
+assert.equal(await cached.response.text(), `network:${logitsRequest.url}`, 'offline checkpoint logits should use their cached response');
 
 const deepNavigation = { method: 'GET', url: `${scope}chapter/attention`, mode: 'navigate' };
 const fallback = await dispatchFetch(deepNavigation);

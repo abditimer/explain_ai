@@ -9,9 +9,11 @@
     "verify:code": "node scripts/verify-code-excerpts.mjs",
     "verify:story-map": "node scripts/verify-story-mappings.mjs",
     "verify:demonstrations": "node scripts/verify-demonstrations.mjs",
+    "verify:checkpoint-output": "node scripts/verify-checkpoint-output.mjs",
     "verify:offline": "node scripts/verify-service-worker.mjs",
     "verify:model": "uv run --with-requirements docs/code/requirements.txt --python 3.12 python scripts/verify_teaching_model.py",
     "record:generation-demo": "node scripts/record-generation-demo.mjs",
+    "record:gpt2-output": "uv run --with-requirements docs/code/requirements-checkpoint.txt --python 3.12 python docs/code/record_gpt2_output.py",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview --base /explain_ai/"

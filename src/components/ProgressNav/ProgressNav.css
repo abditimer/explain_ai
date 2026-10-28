@@ -12,10 +12,7 @@
   padding: 1.5rem 0;
   border-left: 1px solid #0f1622;
   background: #06080f;
-  overflow-y: auto;
-  scrollbar-width: none;
 }
-.chapter-nav::-webkit-scrollbar { display: none; }
 
 /* ── Group wrapper ── */
 .chapter-group {
@@ -33,21 +30,16 @@
   border: none;
   cursor: pointer;
   padding: 5px 8px 2px;
-  outline: none;
   width: 100%;
 }
 
-.chapter-section-item:focus-visible {
-  outline: 2px solid #94a3b8;
-  outline-offset: 2px;
-}
 
 .chapter-section-num {
   font-size: 0.62rem;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #1e293b;
+  color: #94a3b8;
   transition: color 0.2s;
   line-height: 1;
   min-width: 10px;
@@ -60,13 +52,13 @@
   transition: background 0.25s, height 0.2s;
 }
 
-.chapter-section-item.is-past .chapter-section-num { color: #334155; }
+.chapter-section-item.is-past .chapter-section-num { color: #cbd5e1; }
 .chapter-section-item.is-past .chapter-section-line { background: #334155; }
 
 .chapter-section-item.is-active .chapter-section-num { color: inherit; }
 .chapter-section-item.is-active .chapter-section-line { height: 2px; }
 
-.chapter-section-item:hover .chapter-section-num { color: #64748b; }
+.chapter-section-item:hover .chapter-section-num { color: #7c8da3; }
 
 /* ── Sub-step rows (1.1, 1.2 …) ── */
 .chapter-sub-item {
@@ -77,26 +69,21 @@
   border: none;
   cursor: pointer;
   padding: 2px 8px 2px 14px;
-  outline: none;
   width: 100%;
 }
 
-.chapter-sub-item:focus-visible {
-  outline: 2px solid #94a3b8;
-  outline-offset: 2px;
-}
 
 .chapter-sub-num {
   font-size: 0.52rem;
   font-family: 'JetBrains Mono', monospace;
   letter-spacing: 0.02em;
-  color: #1a2233;
+  color: #94a3b8;
   transition: color 0.2s;
   line-height: 1;
   min-width: 22px;
 }
 
-.chapter-sub-num.is-past { color: #2d3f55; }
+.chapter-sub-num.is-past { color: #cbd5e1; }
 .chapter-sub-num.is-active { color: #94a3b8; font-weight: 600; }
 
 .chapter-sub-tick {
@@ -111,7 +98,7 @@
   height: 2px;
 }
 
-.chapter-sub-item:hover .chapter-sub-num { color: #475569; }
+.chapter-sub-item:hover .chapter-sub-num { color: #e2e8f0; }
 
 /* Active accent colors — section number */
 .chapter-section-item.is-active .signal-blue   { color: #60a5fa; }
@@ -147,52 +134,24 @@
   .chapter-nav { display: none; }
 }
 
-/* ── Mobile bottom nav ── */
-.mobile-nav {
-  display: none;
-}
 
-@media (max-width: 900px) {
-  .mobile-nav {
+/* On short or zoomed viewports, keep chapter navigation in document flow and
+   collapse beat links so the rail never becomes a nested scroll region. */
+@media (max-height: 680px) {
+  .chapter-nav {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 52px;
-    background: rgba(6, 8, 15, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 0 0.75rem;
-    z-index: 100;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-evenly;
+    padding: 0.2rem 0.35rem;
+    border-left: 0;
+    border-bottom: 1px solid #0f1622;
+    overflow: visible;
   }
 
-  .mobile-nav-btn {
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 0.8rem;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.03em;
-    padding: 0 0.75rem;
-    min-width: 44px;
-    min-height: 44px;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .mobile-nav-btn:not(:disabled):hover { color: #94a3b8; }
-  .mobile-nav-btn:disabled { opacity: 0.25; pointer-events: none; }
-
-  .mobile-nav-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-align: center;
-    flex: 1;
-  }
+  .chapter-group { flex: 1 1 0; }
+  .chapter-sub-item { display: none; }
+  .chapter-section-item { justify-content: center; min-height: 2.25rem; padding: 0.25rem; }
 }

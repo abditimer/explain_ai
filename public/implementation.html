@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Complete canonical Python source for the GPT-2 Small–style teaching implementation.">
+<title>Complete teaching implementation</title>
+<style>
+body{margin:0;background:#f8f7f3;color:#173b35;font:16px/1.55 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:2rem 1.25rem 5rem}a{color:#57488b}nav{margin:2rem 0 2.5rem;padding:1.25rem 1.5rem;background:#fff;border:1px solid #d8e0da;border-radius:12px}nav h2{margin-top:0;font-size:1.15rem}nav ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.75rem 2rem;padding-left:1.25rem}nav li{padding:.25rem 0}nav li span{display:block;color:#47594f;font-size:.9rem}pre{overflow:auto;padding:1.25rem;background:#182522;color:#f4f1e9;border-radius:12px;font:13px/1.6 ui-monospace,monospace}.line{display:block;min-height:1.6em}.number{display:inline-block;width:3.5em;padding-right:1em;text-align:right;color:#9aa9a2;user-select:none}.line:target{background:#54466b;color:#fff}
+</style></head><body><main><p><a href="./">← Back to the story</a></p><h1>Complete teaching implementation</h1><p>Canonical source for the code excerpts used in the story. This educational implementation uses random initial weights, a 256-token context, and an untied output projection. It does not load a trained GPT-2 checkpoint.</p><nav aria-label="Implementation chapters"><h2>Follow the implementation</h2><ol><li><a href="#region-imports">Imports and setup</a><span>Shared tokenizer and dependencies</span></li><li><a href="#region-data-prep">Prepare examples</a><span>Text splits and shifted context-target windows</span></li><li><a href="#region-model">Represent the sentence</a><span>Token and position embeddings, repeated blocks, final output scores</span></li><li><a href="#region-attention">Connect positions</a><span>Query, key, and value projections; causal attention</span></li><li><a href="#region-feedforward">Transform each position</a><span>Expansion, GELU, and projection back to model width</span></li><li><a href="#region-block">Repeat the block</a><span>Pre-normalized attention and feed-forward residual paths</span></li><li><a href="#region-generation">Continue the sentence</a><span>Temperature, optional top-k, selection, append, and decode</span></li><li><a href="#region-training">How learning works</a><span>Cross-entropy, gradients, optimizer steps, and evaluation</span></li></ol></nav><pre><code><span id="L1" class="line"><span class="number" aria-hidden="true">1</span>"""Canonical source for the GPT-2 Small–style teaching snippets shown on the site.</span>
+<span id="L2" class="line"><span class="number" aria-hidden="true">2</span> </span>
+<span id="L3" class="line"><span class="number" aria-hidden="true">3</span>This is a randomly initialized educational implementation, not a pretrained GPT-2</span>
+<span id="L4" class="line"><span class="number" aria-hidden="true">4</span>checkpoint. It intentionally uses a 256-token context and an untied output head.</span>
+<span id="L5" class="line"><span class="number" aria-hidden="true">5</span>Requires PyTorch and tiktoken to import and run.</span>
+<span id="L6" class="line"><span class="number" aria-hidden="true">6</span>"""</span>
+<span id="L7" class="line"><span class="number" aria-hidden="true">7</span> </span>
+<span id="region-imports"></span><span id="region-imports-L9"></span><span id="L8" class="line"><span class="number" aria-hidden="true">8</span># region imports</span>
+<span id="L9" class="line"><span class="number" aria-hidden="true">9</span>import torch</span>
+<span id="L10" class="line"><span class="number" aria-hidden="true">10</span>import torch.nn as nn</span>
+<span id="L11" class="line"><span class="number" aria-hidden="true">11</span>import torch.nn.functional as F</span>
+<span id="L12" class="line"><span class="number" aria-hidden="true">12</span>from torch.utils.data import Dataset, DataLoader</span>
+<span id="L13" class="line"><span class="number" aria-hidden="true">13</span>import tiktoken</span>
+<span id="L14" class="line"><span class="number" aria-hidden="true">14</span> </span>
+<span id="L15" class="line"><span class="number" aria-hidden="true">15</span>torch.manual_seed(123)</span>
+<span id="L16" class="line"><span class="number" aria-hidden="true">16</span>tokenizer = tiktoken.get_encoding("gpt2")</span>
+<span id="L17" class="line"><span class="number" aria-hidden="true">17</span># endregion imports</span>
+<span id="L18" class="line"><span class="number" aria-hidden="true">18</span> </span>
+<span id="region-data-prep"></span><span id="region-data-prep-L20"></span><span id="L19" class="line"><span class="number" aria-hidden="true">19</span># region data-prep</span>
+<span id="L20" class="line"><span class="number" aria-hidden="true">20</span>def read_file(file_path, train_split_ratio):</span>
+<span id="L21" class="line"><span class="number" aria-hidden="true">21</span>    with open(file_path, "r", encoding="utf-8") as file:</span>
+<span id="L22" class="line"><span class="number" aria-hidden="true">22</span>        text = file.read()</span>
+<span id="L23" class="line"><span class="number" aria-hidden="true">23</span>    split_at_this_index = int(train_split_ratio * len(text))</span>
+<span id="L24" class="line"><span class="number" aria-hidden="true">24</span>    train_text = text[:split_at_this_index]</span>
+<span id="L25" class="line"><span class="number" aria-hidden="true">25</span>    validation_text = text[split_at_this_index:]</span>
+<span id="L26" class="line"><span class="number" aria-hidden="true">26</span>    return train_text, validation_text</span>
+<span id="L27" class="line"><span class="number" aria-hidden="true">27</span> </span>
+<span id="L28" class="line"><span class="number" aria-hidden="true">28</span> </span>
+<span id="L29" class="line"><span class="number" aria-hidden="true">29</span>class SlidingWindowDataset(Dataset):</span>
+<span id="L30" class="line"><span class="number" aria-hidden="true">30</span>    def __init__(self, text, tokenizer, context_length, stride):</span>
+<span id="L31" class="line"><span class="number" aria-hidden="true">31</span>        self.source_tokens = []</span>
+<span id="L32" class="line"><span class="number" aria-hidden="true">32</span>        self.target_tokens = []</span>
+<span id="L33" class="line"><span class="number" aria-hidden="true">33</span>        tokens = tokenizer.encode(text)</span>
+<span id="L34" class="line"><span class="number" aria-hidden="true">34</span>        for token_id in range(0, len(tokens) - context_length, stride):</span>
+<span id="L35" class="line"><span class="number" aria-hidden="true">35</span>            source = tokens[token_id:token_id + context_length]</span>
+<span id="L36" class="line"><span class="number" aria-hidden="true">36</span>            target = tokens[token_id + 1:token_id + context_length + 1]</span>
+<span id="L37" class="line"><span class="number" aria-hidden="true">37</span>            self.source_tokens.append(torch.tensor(source))</span>
+<span id="L38" class="line"><span class="number" aria-hidden="true">38</span>            self.target_tokens.append(torch.tensor(target))</span>
+<span id="L39" class="line"><span class="number" aria-hidden="true">39</span> </span>
+<span id="L40" class="line"><span class="number" aria-hidden="true">40</span>    def __len__(self):</span>
+<span id="L41" class="line"><span class="number" aria-hidden="true">41</span>        return len(self.source_tokens)</span>
+<span id="L42" class="line"><span class="number" aria-hidden="true">42</span> </span>
+<span id="L43" class="line"><span class="number" aria-hidden="true">43</span>    def __getitem__(self, index):</span>
+<span id="L44" class="line"><span class="number" aria-hidden="true">44</span>        return self.source_tokens[index], self.target_tokens[index]</span>
+<span id="L45" class="line"><span class="number" aria-hidden="true">45</span> </span>
+<span id="L46" class="line"><span class="number" aria-hidden="true">46</span> </span>
+<span id="L47" class="line"><span class="number" aria-hidden="true">47</span>def dataloader(text, batch_size=4, context_length=256,</span>
+<span id="L48" class="line"><span class="number" aria-hidden="true">48</span>               stride=128, shuffle=True, drop_last=True):</span>
+<span id="L49" class="line"><span class="number" aria-hidden="true">49</span>    dataset = SlidingWindowDataset(text, tokenizer, context_length, stride)</span>
+<span id="L50" class="line"><span class="number" aria-hidden="true">50</span>    return DataLoader(dataset, batch_size=batch_size,</span>
+<span id="L51" class="line"><span class="number" aria-hidden="true">51</span>                      shuffle=shuffle, drop_last=drop_last)</span>
+<span id="L52" class="line"><span class="number" aria-hidden="true">52</span># endregion data-prep</span>
+<span id="L53" class="line"><span class="number" aria-hidden="true">53</span> </span>
+<span id="region-feedforward"></span><span id="region-feedforward-L55"></span><span id="L54" class="line"><span class="number" aria-hidden="true">54</span># region feedforward</span>
+<span id="L55" class="line"><span class="number" aria-hidden="true">55</span>class FeedForward(nn.Module):</span>
+<span id="L56" class="line"><span class="number" aria-hidden="true">56</span>    def __init__(self, config):</span>
+<span id="L57" class="line"><span class="number" aria-hidden="true">57</span>        super().__init__()</span>
+<span id="L58" class="line"><span class="number" aria-hidden="true">58</span>        self.layers = nn.Sequential(</span>
+<span id="L59" class="line"><span class="number" aria-hidden="true">59</span>            nn.Linear(config["emb_dim"], 4 * config["emb_dim"]),</span>
+<span id="L60" class="line"><span class="number" aria-hidden="true">60</span>            nn.GELU(),</span>
+<span id="L61" class="line"><span class="number" aria-hidden="true">61</span>            nn.Linear(4 * config["emb_dim"], config["emb_dim"]),</span>
+<span id="L62" class="line"><span class="number" aria-hidden="true">62</span>        )</span>
+<span id="L63" class="line"><span class="number" aria-hidden="true">63</span> </span>
+<span id="L64" class="line"><span class="number" aria-hidden="true">64</span>    def forward(self, x):</span>
+<span id="L65" class="line"><span class="number" aria-hidden="true">65</span>        return self.layers(x)</span>
+<span id="L66" class="line"><span class="number" aria-hidden="true">66</span># endregion feedforward</span>
+<span id="L67" class="line"><span class="number" aria-hidden="true">67</span> </span>
+<span id="region-attention"></span><span id="region-attention-L69"></span><span id="L68" class="line"><span class="number" aria-hidden="true">68</span># region attention</span>
+<span id="L69" class="line"><span class="number" aria-hidden="true">69</span>class MultiHeadAttention(nn.Module):</span>
+<span id="L70" class="line"><span class="number" aria-hidden="true">70</span>    def __init__(self, dim_in, dim_out, context_length,</span>
+<span id="L71" class="line"><span class="number" aria-hidden="true">71</span>                 dropout, num_heads, qkv_bias=False):</span>
+<span id="L72" class="line"><span class="number" aria-hidden="true">72</span>        super().__init__()</span>
+<span id="L73" class="line"><span class="number" aria-hidden="true">73</span>        assert dim_out % num_heads == 0</span>
+<span id="L74" class="line"><span class="number" aria-hidden="true">74</span>        self.dim_out = dim_out</span>
+<span id="L75" class="line"><span class="number" aria-hidden="true">75</span>        self.num_heads = num_heads</span>
+<span id="L76" class="line"><span class="number" aria-hidden="true">76</span>        self.head_dim = dim_out // num_heads</span>
+<span id="L77" class="line"><span class="number" aria-hidden="true">77</span> </span>
+<span id="L78" class="line"><span class="number" aria-hidden="true">78</span>        self.Wq = nn.Linear(dim_in, dim_out, bias=qkv_bias)</span>
+<span id="L79" class="line"><span class="number" aria-hidden="true">79</span>        self.Wk = nn.Linear(dim_in, dim_out, bias=qkv_bias)</span>
+<span id="L80" class="line"><span class="number" aria-hidden="true">80</span>        self.Wv = nn.Linear(dim_in, dim_out, bias=qkv_bias)</span>
+<span id="L81" class="line"><span class="number" aria-hidden="true">81</span>        self.head_combined_projection = nn.Linear(dim_out, dim_out)</span>
+<span id="L82" class="line"><span class="number" aria-hidden="true">82</span>        self.dropout = nn.Dropout(dropout)</span>
+<span id="L83" class="line"><span class="number" aria-hidden="true">83</span>        self.register_buffer(</span>
+<span id="L84" class="line"><span class="number" aria-hidden="true">84</span>            "mask", torch.triu(torch.ones(context_length, context_length), diagonal=1)</span>
+<span id="L85" class="line"><span class="number" aria-hidden="true">85</span>        )</span>
+<span id="L86" class="line"><span class="number" aria-hidden="true">86</span> </span>
+<span id="L87" class="line"><span class="number" aria-hidden="true">87</span>    def forward(self, x):</span>
+<span id="L88" class="line"><span class="number" aria-hidden="true">88</span>        batch, tokens, _ = x.shape</span>
+<span id="L89" class="line"><span class="number" aria-hidden="true">89</span>        q = self.Wq(x)</span>
+<span id="L90" class="line"><span class="number" aria-hidden="true">90</span>        k = self.Wk(x)</span>
+<span id="L91" class="line"><span class="number" aria-hidden="true">91</span>        v = self.Wv(x)</span>
+<span id="L92" class="line"><span class="number" aria-hidden="true">92</span> </span>
+<span id="L93" class="line"><span class="number" aria-hidden="true">93</span>        q = q.view(batch, tokens, self.num_heads, self.head_dim).transpose(1, 2)</span>
+<span id="L94" class="line"><span class="number" aria-hidden="true">94</span>        k = k.view(batch, tokens, self.num_heads, self.head_dim).transpose(1, 2)</span>
+<span id="L95" class="line"><span class="number" aria-hidden="true">95</span>        v = v.view(batch, tokens, self.num_heads, self.head_dim).transpose(1, 2)</span>
+<span id="L96" class="line"><span class="number" aria-hidden="true">96</span> </span>
+<span id="L97" class="line"><span class="number" aria-hidden="true">97</span>        scores = q @ k.transpose(2, 3)</span>
+<span id="L98" class="line"><span class="number" aria-hidden="true">98</span>        mask = self.mask.bool()[:tokens, :tokens]</span>
+<span id="L99" class="line"><span class="number" aria-hidden="true">99</span>        scores.masked_fill_(mask, -torch.inf)</span>
+<span id="L100" class="line"><span class="number" aria-hidden="true">100</span>        weights = torch.softmax(scores / self.head_dim ** 0.5, dim=-1)</span>
+<span id="L101" class="line"><span class="number" aria-hidden="true">101</span>        weights = self.dropout(weights)</span>
+<span id="L102" class="line"><span class="number" aria-hidden="true">102</span> </span>
+<span id="L103" class="line"><span class="number" aria-hidden="true">103</span>        context = (weights @ v).transpose(1, 2).contiguous()</span>
+<span id="L104" class="line"><span class="number" aria-hidden="true">104</span>        context = context.view(batch, tokens, self.dim_out)</span>
+<span id="L105" class="line"><span class="number" aria-hidden="true">105</span>        return self.head_combined_projection(context)</span>
+<span id="L106" class="line"><span class="number" aria-hidden="true">106</span># endregion attention</span>
+<span id="L107" class="line"><span class="number" aria-hidden="true">107</span> </span>
+<span id="region-block"></span><span id="region-block-L109"></span><span id="L108" class="line"><span class="number" aria-hidden="true">108</span># region block</span>
+<span id="L109" class="line"><span class="number" aria-hidden="true">109</span>class TransformerBlock(nn.Module):</span>
+<span id="L110" class="line"><span class="number" aria-hidden="true">110</span>    def __init__(self, config):</span>
+<span id="L111" class="line"><span class="number" aria-hidden="true">111</span>        super().__init__()</span>
+<span id="L112" class="line"><span class="number" aria-hidden="true">112</span>        self.attention = MultiHeadAttention(</span>
+<span id="L113" class="line"><span class="number" aria-hidden="true">113</span>            dim_in=config["emb_dim"], dim_out=config["emb_dim"],</span>
+<span id="L114" class="line"><span class="number" aria-hidden="true">114</span>            context_length=config["context_length"],</span>
+<span id="L115" class="line"><span class="number" aria-hidden="true">115</span>            num_heads=config["n_heads"], dropout=config["drop_rate"],</span>
+<span id="L116" class="line"><span class="number" aria-hidden="true">116</span>            qkv_bias=config["qkv_bias"],</span>
+<span id="L117" class="line"><span class="number" aria-hidden="true">117</span>        )</span>
+<span id="L118" class="line"><span class="number" aria-hidden="true">118</span>        self.feedforwards = FeedForward(config)</span>
+<span id="L119" class="line"><span class="number" aria-hidden="true">119</span>        self.layer_norm_1 = nn.LayerNorm(config["emb_dim"])</span>
+<span id="L120" class="line"><span class="number" aria-hidden="true">120</span>        self.layer_norm_2 = nn.LayerNorm(config["emb_dim"])</span>
+<span id="L121" class="line"><span class="number" aria-hidden="true">121</span>        self.drop_shortcut = nn.Dropout(config["drop_rate"])</span>
+<span id="L122" class="line"><span class="number" aria-hidden="true">122</span> </span>
+<span id="L123" class="line"><span class="number" aria-hidden="true">123</span>    def forward(self, x):</span>
+<span id="L124" class="line"><span class="number" aria-hidden="true">124</span>        shortcut = x</span>
+<span id="L125" class="line"><span class="number" aria-hidden="true">125</span>        x = self.layer_norm_1(x)</span>
+<span id="L126" class="line"><span class="number" aria-hidden="true">126</span>        x = self.drop_shortcut(self.attention(x))</span>
+<span id="L127" class="line"><span class="number" aria-hidden="true">127</span>        x = x + shortcut</span>
+<span id="L128" class="line"><span class="number" aria-hidden="true">128</span> </span>
+<span id="L129" class="line"><span class="number" aria-hidden="true">129</span>        shortcut = x</span>
+<span id="L130" class="line"><span class="number" aria-hidden="true">130</span>        x = self.layer_norm_2(x)</span>
+<span id="L131" class="line"><span class="number" aria-hidden="true">131</span>        x = self.drop_shortcut(self.feedforwards(x))</span>
+<span id="L132" class="line"><span class="number" aria-hidden="true">132</span>        return x + shortcut</span>
+<span id="L133" class="line"><span class="number" aria-hidden="true">133</span># endregion block</span>
+<span id="L134" class="line"><span class="number" aria-hidden="true">134</span> </span>
+<span id="region-model"></span><span id="region-model-L136"></span><span id="L135" class="line"><span class="number" aria-hidden="true">135</span># region model</span>
+<span id="L136" class="line"><span class="number" aria-hidden="true">136</span>class GPT(nn.Module):</span>
+<span id="L137" class="line"><span class="number" aria-hidden="true">137</span>    def __init__(self, config):</span>
+<span id="L138" class="line"><span class="number" aria-hidden="true">138</span>        super().__init__()</span>
+<span id="L139" class="line"><span class="number" aria-hidden="true">139</span>        self.config = config</span>
+<span id="L140" class="line"><span class="number" aria-hidden="true">140</span>        self.tokens_embeddings = nn.Embedding(config["vocab_size"], config["emb_dim"])</span>
+<span id="L141" class="line"><span class="number" aria-hidden="true">141</span>        self.positional_embeddings = nn.Embedding(config["context_length"], config["emb_dim"])</span>
+<span id="L142" class="line"><span class="number" aria-hidden="true">142</span>        self.dropout = nn.Dropout(config["drop_rate"])</span>
+<span id="L143" class="line"><span class="number" aria-hidden="true">143</span>        self.transformer = nn.Sequential(</span>
+<span id="L144" class="line"><span class="number" aria-hidden="true">144</span>            *(TransformerBlock(config) for _ in range(config["n_layers"]))</span>
+<span id="L145" class="line"><span class="number" aria-hidden="true">145</span>        )</span>
+<span id="L146" class="line"><span class="number" aria-hidden="true">146</span>        self.final_norm = nn.LayerNorm(config["emb_dim"])</span>
+<span id="L147" class="line"><span class="number" aria-hidden="true">147</span>        # This teaching implementation keeps the output projection untied; GPT-2 ties it.</span>
+<span id="L148" class="line"><span class="number" aria-hidden="true">148</span>        self.output_head = nn.Linear(config["emb_dim"], config["vocab_size"], bias=False)</span>
+<span id="L149" class="line"><span class="number" aria-hidden="true">149</span> </span>
+<span id="L150" class="line"><span class="number" aria-hidden="true">150</span>    def forward(self, idx):</span>
+<span id="L151" class="line"><span class="number" aria-hidden="true">151</span>        _, seq_len = idx.shape</span>
+<span id="L152" class="line"><span class="number" aria-hidden="true">152</span>        tok_emb = self.tokens_embeddings(idx)</span>
+<span id="L153" class="line"><span class="number" aria-hidden="true">153</span>        positions = torch.arange(seq_len, device=idx.device)</span>
+<span id="L154" class="line"><span class="number" aria-hidden="true">154</span>        pos_emb = self.positional_embeddings(positions)</span>
+<span id="L155" class="line"><span class="number" aria-hidden="true">155</span>        x = self.dropout(tok_emb + pos_emb)</span>
+<span id="L156" class="line"><span class="number" aria-hidden="true">156</span>        x = self.final_norm(self.transformer(x))</span>
+<span id="L157" class="line"><span class="number" aria-hidden="true">157</span>        return self.output_head(x)</span>
+<span id="L158" class="line"><span class="number" aria-hidden="true">158</span> </span>
+<span id="L159" class="line"><span class="number" aria-hidden="true">159</span> </span>
+<span id="L160" class="line"><span class="number" aria-hidden="true">160</span>GPT2_SMALL_STYLE_CONFIG = {</span>
+<span id="L161" class="line"><span class="number" aria-hidden="true">161</span>    "vocab_size": 50257,</span>
+<span id="L162" class="line"><span class="number" aria-hidden="true">162</span>    "context_length": 256,</span>
+<span id="L163" class="line"><span class="number" aria-hidden="true">163</span>    "emb_dim": 768,</span>
+<span id="L164" class="line"><span class="number" aria-hidden="true">164</span>    "n_heads": 12,</span>
+<span id="L165" class="line"><span class="number" aria-hidden="true">165</span>    "n_layers": 12,</span>
+<span id="L166" class="line"><span class="number" aria-hidden="true">166</span>    "drop_rate": 0.1,</span>
+<span id="L167" class="line"><span class="number" aria-hidden="true">167</span>    "qkv_bias": False,</span>
+<span id="L168" class="line"><span class="number" aria-hidden="true">168</span>}</span>
+<span id="L169" class="line"><span class="number" aria-hidden="true">169</span># endregion model</span>
+<span id="L170" class="line"><span class="number" aria-hidden="true">170</span> </span>
+<span id="region-generation"></span><span id="region-generation-L172"></span><span id="L171" class="line"><span class="number" aria-hidden="true">171</span># region generation</span>
+<span id="L172" class="line"><span class="number" aria-hidden="true">172</span>def generate(model, idx, max_generated_tokens, temperature=1.0, top_k=None):</span>
+<span id="L173" class="line"><span class="number" aria-hidden="true">173</span>    if temperature &lt; 0:</span>
+<span id="L174" class="line"><span class="number" aria-hidden="true">174</span>        raise ValueError("temperature must be zero (greedy) or positive")</span>
+<span id="L175" class="line"><span class="number" aria-hidden="true">175</span> </span>
+<span id="L176" class="line"><span class="number" aria-hidden="true">176</span>    for _ in range(max_generated_tokens):</span>
+<span id="L177" class="line"><span class="number" aria-hidden="true">177</span>        idx_context = idx[:, -model.config["context_length"]:]</span>
+<span id="L178" class="line"><span class="number" aria-hidden="true">178</span>        with torch.no_grad():</span>
+<span id="L179" class="line"><span class="number" aria-hidden="true">179</span>            logits = model(idx_context)[:, -1, :]</span>
+<span id="L180" class="line"><span class="number" aria-hidden="true">180</span> </span>
+<span id="L181" class="line"><span class="number" aria-hidden="true">181</span>        if temperature == 0:</span>
+<span id="L182" class="line"><span class="number" aria-hidden="true">182</span>            idx_next = torch.argmax(logits, dim=-1, keepdim=True)</span>
+<span id="L183" class="line"><span class="number" aria-hidden="true">183</span>        else:</span>
+<span id="L184" class="line"><span class="number" aria-hidden="true">184</span>            logits = logits / temperature</span>
+<span id="L185" class="line"><span class="number" aria-hidden="true">185</span>            if top_k is not None:</span>
+<span id="L186" class="line"><span class="number" aria-hidden="true">186</span>                if not 1 &lt;= top_k &lt;= logits.size(-1):</span>
+<span id="L187" class="line"><span class="number" aria-hidden="true">187</span>                    raise ValueError("top_k must be between 1 and vocabulary size")</span>
+<span id="L188" class="line"><span class="number" aria-hidden="true">188</span>                top_logits, _ = torch.topk(logits, top_k)</span>
+<span id="L189" class="line"><span class="number" aria-hidden="true">189</span>                cutoff = top_logits[:, -1, None]</span>
+<span id="L190" class="line"><span class="number" aria-hidden="true">190</span>                logits = logits.masked_fill(logits &lt; cutoff, -torch.inf)</span>
+<span id="L191" class="line"><span class="number" aria-hidden="true">191</span>            probs = torch.softmax(logits, dim=-1)</span>
+<span id="L192" class="line"><span class="number" aria-hidden="true">192</span>            idx_next = torch.multinomial(probs, num_samples=1)</span>
+<span id="L193" class="line"><span class="number" aria-hidden="true">193</span>        idx = torch.cat((idx, idx_next), dim=1)</span>
+<span id="L194" class="line"><span class="number" aria-hidden="true">194</span>    return idx</span>
+<span id="L195" class="line"><span class="number" aria-hidden="true">195</span> </span>
+<span id="L196" class="line"><span class="number" aria-hidden="true">196</span> </span>
+<span id="L197" class="line"><span class="number" aria-hidden="true">197</span>def encode(text):</span>
+<span id="L198" class="line"><span class="number" aria-hidden="true">198</span>    return torch.tensor(tokenizer.encode(text)).unsqueeze(0)</span>
+<span id="L199" class="line"><span class="number" aria-hidden="true">199</span> </span>
+<span id="L200" class="line"><span class="number" aria-hidden="true">200</span> </span>
+<span id="L201" class="line"><span class="number" aria-hidden="true">201</span>def decode(tokens):</span>
+<span id="L202" class="line"><span class="number" aria-hidden="true">202</span>    return tokenizer.decode(tokens.squeeze(0).tolist())</span>
+<span id="L203" class="line"><span class="number" aria-hidden="true">203</span># endregion generation</span>
+<span id="L204" class="line"><span class="number" aria-hidden="true">204</span> </span>
+<span id="region-training"></span><span id="region-training-L206"></span><span id="L205" class="line"><span class="number" aria-hidden="true">205</span># region training</span>
+<span id="L206" class="line"><span class="number" aria-hidden="true">206</span>def get_loss_per_batch(input_batch, target_batch, model, device):</span>
+<span id="L207" class="line"><span class="number" aria-hidden="true">207</span>    input_batch = input_batch.to(device)</span>
+<span id="L208" class="line"><span class="number" aria-hidden="true">208</span>    target_batch = target_batch.to(device)</span>
+<span id="L209" class="line"><span class="number" aria-hidden="true">209</span>    logits = model(input_batch)</span>
+<span id="L210" class="line"><span class="number" aria-hidden="true">210</span>    return F.cross_entropy(logits.flatten(0, 1), target_batch.flatten())</span>
+<span id="L211" class="line"><span class="number" aria-hidden="true">211</span> </span>
+<span id="L212" class="line"><span class="number" aria-hidden="true">212</span> </span>
+<span id="L213" class="line"><span class="number" aria-hidden="true">213</span>@torch.no_grad()</span>
+<span id="L214" class="line"><span class="number" aria-hidden="true">214</span>def get_loss_per_dataloader(dataloader, model, device, num_batches=None):</span>
+<span id="L215" class="line"><span class="number" aria-hidden="true">215</span>    total_loss = 0</span>
+<span id="L216" class="line"><span class="number" aria-hidden="true">216</span>    num_batches = min(num_batches or len(dataloader), len(dataloader))</span>
+<span id="L217" class="line"><span class="number" aria-hidden="true">217</span>    for i, (x, y) in enumerate(dataloader):</span>
+<span id="L218" class="line"><span class="number" aria-hidden="true">218</span>        if i &gt;= num_batches:</span>
+<span id="L219" class="line"><span class="number" aria-hidden="true">219</span>            break</span>
+<span id="L220" class="line"><span class="number" aria-hidden="true">220</span>        total_loss += get_loss_per_batch(x, y, model, device).item()</span>
+<span id="L221" class="line"><span class="number" aria-hidden="true">221</span>    return total_loss / num_batches if num_batches &gt; 0 else float("nan")</span>
+<span id="L222" class="line"><span class="number" aria-hidden="true">222</span> </span>
+<span id="L223" class="line"><span class="number" aria-hidden="true">223</span> </span>
+<span id="L224" class="line"><span class="number" aria-hidden="true">224</span>def train_model(model, train_dl, val_dl, optimizer, device,</span>
+<span id="L225" class="line"><span class="number" aria-hidden="true">225</span>                num_epochs, eval_freq, eval_iter):</span>
+<span id="L226" class="line"><span class="number" aria-hidden="true">226</span>    train_losses, val_losses, track_tokens_seen = [], [], []</span>
+<span id="L227" class="line"><span class="number" aria-hidden="true">227</span>    tokens_seen, step = 0, -1</span>
+<span id="L228" class="line"><span class="number" aria-hidden="true">228</span>    for epoch in range(num_epochs):</span>
+<span id="L229" class="line"><span class="number" aria-hidden="true">229</span>        model.train()</span>
+<span id="L230" class="line"><span class="number" aria-hidden="true">230</span>        for x, y in train_dl:</span>
+<span id="L231" class="line"><span class="number" aria-hidden="true">231</span>            optimizer.zero_grad()</span>
+<span id="L232" class="line"><span class="number" aria-hidden="true">232</span>            loss = get_loss_per_batch(x, y, model, device)</span>
+<span id="L233" class="line"><span class="number" aria-hidden="true">233</span>            loss.backward()</span>
+<span id="L234" class="line"><span class="number" aria-hidden="true">234</span>            optimizer.step()</span>
+<span id="L235" class="line"><span class="number" aria-hidden="true">235</span>            tokens_seen += x.numel()</span>
+<span id="L236" class="line"><span class="number" aria-hidden="true">236</span>            step += 1</span>
+<span id="L237" class="line"><span class="number" aria-hidden="true">237</span> </span>
+<span id="L238" class="line"><span class="number" aria-hidden="true">238</span>            if step % eval_freq == 0:</span>
+<span id="L239" class="line"><span class="number" aria-hidden="true">239</span>                model.eval()</span>
+<span id="L240" class="line"><span class="number" aria-hidden="true">240</span>                train_loss = get_loss_per_dataloader(train_dl, model, device, eval_iter)</span>
+<span id="L241" class="line"><span class="number" aria-hidden="true">241</span>                val_loss = get_loss_per_dataloader(val_dl, model, device, eval_iter)</span>
+<span id="L242" class="line"><span class="number" aria-hidden="true">242</span>                train_losses.append(train_loss)</span>
+<span id="L243" class="line"><span class="number" aria-hidden="true">243</span>                val_losses.append(val_loss)</span>
+<span id="L244" class="line"><span class="number" aria-hidden="true">244</span>                track_tokens_seen.append(tokens_seen)</span>
+<span id="L245" class="line"><span class="number" aria-hidden="true">245</span>                print(f"Epoch {epoch + 1} | Step {step:06d} | "</span>
+<span id="L246" class="line"><span class="number" aria-hidden="true">246</span>                      f"Train {train_loss:.3f} | Val {val_loss:.3f}")</span>
+<span id="L247" class="line"><span class="number" aria-hidden="true">247</span>                model.train()</span>
+<span id="L248" class="line"><span class="number" aria-hidden="true">248</span>    return train_losses, val_losses, track_tokens_seen</span>
+<span id="L249" class="line"><span class="number" aria-hidden="true">249</span># endregion training</span>
+<span id="L250" class="line"><span class="number" aria-hidden="true">250</span> </span></code></pre></main></body></html>

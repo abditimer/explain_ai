@@ -13,6 +13,15 @@ dist
 dist-ssr
 *.local
 
+# Local scratch exports and working copies; the site uses the source under src/.
+/attention.html
+/attention_diagram.jpeg
+/gpt-tutorial/
+/git_push.sh
+/git_push_explain_ai.command
+__pycache__/
+*.py[cod]
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

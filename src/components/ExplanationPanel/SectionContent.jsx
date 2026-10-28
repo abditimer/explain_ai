@@ -1,6 +1,6 @@
 export function SectionContent({ section, currentColor, onShowCode }) {
   return (
-    <div className="flex-1 overflow-y-auto p-4 lg:p-8">
+    <div className="flex-1 p-4 lg:p-8">
       <div className={`h-1 w-16 lg:w-20 ${currentColor.replace('border-', 'bg-')} rounded mb-4 lg:mb-6`}></div>
 
       <h2 className="text-2xl lg:text-3xl font-light mb-4 lg:mb-6">{section.title}</h2>
@@ -10,8 +10,8 @@ export function SectionContent({ section, currentColor, onShowCode }) {
       </p>
 
       {section.visual && (
-        <div className="bg-slate-50 rounded-lg p-4 lg:p-6 border border-slate-200 overflow-x-auto">
-          <pre className="text-xs lg:text-sm font-mono text-slate-800 whitespace-pre">
+        <div className="bg-slate-50 rounded-lg p-4 lg:p-6 border border-slate-200">
+          <pre className="text-xs lg:text-sm font-mono text-slate-800 whitespace-pre-wrap break-words">
             {section.visual}
           </pre>
         </div>

@@ -2,62 +2,53 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Lenis from "lenis";
 import "./index.css";
+import "./fonts.css";
 import App from "./App.jsx";
+import { AppErrorBoundary } from "./components/AppErrorBoundary.jsx";
 
-const lenis = new Lenis({
-  duration: 1.4,
-  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-  wheelMultiplier: 0.7,
-  touchMultiplier: 1.2,
-  autoRaf: true,
-});
-window.__lenis = lenis;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let lenis = null;
+const syncScrollMode = () => {
+  if (reducedMotion.matches) {
+    lenis?.destroy();
+    lenis = null;
+    window.__lenis = null;
+    return;
+  }
+  if (lenis) return;
+  try {
+    lenis = new Lenis({
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      wheelMultiplier: 0.7,
+      touchMultiplier: 1.2,
+      autoRaf: true,
+    });
+    window.__lenis = lenis;
+    window.addEventListener('load', () => lenis?.resize(), { once: true });
+  } catch (error) {
+    lenis = null;
+    window.__lenis = null;
+    console.warn('Smooth scrolling is unavailable; continuing with native scrolling.', error);
+  }
+};
+syncScrollMode();
+reducedMotion.addEventListener('change', syncScrollMode);
 
-// Lenis calculates limit=0 before the DOM paints — fix after load.
-window.addEventListener('load', () => lenis.resize());
-
-// ── Keyboard step navigation ─────────────────────────────────────────────
-// __targetStep tracks where we intend to be (advances immediately on each
-// keypress). __activeStep (set by Scrollama in App.jsx) syncs it back to
-// ground truth once the scroll animation settles.
-// -1 so the first ↓ press lands on step 0 (not step 1)
-window.__targetStep = -1;
-
-window.addEventListener('keydown', (e) => {
-  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' &&
-      e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-
-  const tag = document.activeElement?.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-
-  e.preventDefault();
-
-  const steps = document.querySelectorAll('.story-step');
-  if (!steps.length) return;
-
-  const isForward = e.key === 'ArrowDown' || e.key === 'ArrowRight';
-
-  // Advance the target index immediately — don't wait for Scrollama
-  window.__targetStep = Math.max(
-    0,
-    Math.min(steps.length - 1, window.__targetStep + (isForward ? 1 : -1))
-  );
-
-  const el = steps[window.__targetStep];
-  if (!el) return;
-
-  lenis.resize(); // ensure limit is calculated
-  const rect = el.getBoundingClientRect();
-  // Center the step vertically in the viewport
-  const stepHeight = el.offsetHeight;
-  const topOffset = Math.max(0, (window.innerHeight - stepHeight) / 2);
-  const finalY = Math.max(0, rect.top + window.scrollY - topOffset);
-  lenis.scrollTo(finalY, { duration: 1.0 });
-}, { capture: true });
-// ────────────────────────────────────────────────────────────────────────
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js`, {
+      scope: import.meta.env.BASE_URL,
+    }).catch((error) => {
+      console.info('Offline support is unavailable; the explanation still works online.', error);
+    });
+  }, { once: true });
+}
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </StrictMode>,
 );

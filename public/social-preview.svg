@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">How a machine continues text</title>
+  <desc id="description">A sentence becomes token pieces, gathers context through attention, and opens into possible continuations.</desc>
+  <rect width="1200" height="630" fill="#f3f1eb"/>
+  <path d="M0 0h1200v16H0z" fill="#173b35"/>
+  <path d="M58 76h1084v478H58z" fill="none" stroke="#d8d5ca" stroke-width="2"/>
+  <text x="100" y="138" fill="#42665c" font-family="ui-monospace,monospace" font-size="18" font-weight="700" letter-spacing="4">AN INTERACTIVE FIELD GUIDE</text>
+  <text x="96" y="244" fill="#173b35" font-family="Georgia,serif" font-size="76" letter-spacing="-3">How a machine</text>
+  <text x="96" y="328" fill="#173b35" font-family="Georgia,serif" font-size="76" letter-spacing="-3">continues text</text>
+  <text x="100" y="386" fill="#49665f" font-family="system-ui,sans-serif" font-size="24">Follow one sentence through a transformer.</text>
+  <text x="100" y="466" fill="#65518e" font-family="ui-monospace,monospace" font-size="22">The cat sat on the</text>
+  <path d="M100 492h545" fill="none" stroke="#b5a6ca" stroke-width="2"/>
+  <circle cx="100" cy="492" r="5" fill="#b5a6ca"/>
+  <rect x="745" y="126" width="350" height="82" rx="8" fill="#e8e5dc" stroke="#d8d5ca" stroke-width="2"/>
+  <text x="775" y="176" fill="#173b35" font-family="ui-monospace,monospace" font-size="24">token IDs</text>
+  <path d="M920 208v40" stroke="#8e7cae" stroke-width="3"/>
+  <circle cx="920" cy="228" r="6" fill="#8e7cae"/>
+  <rect x="745" y="248" width="350" height="82" rx="8" fill="#173b35"/>
+  <text x="775" y="298" fill="#f3f1eb" font-family="ui-monospace,monospace" font-size="24">attention</text>
+  <path d="M920 330v40" stroke="#b88b70" stroke-width="3"/>
+  <circle cx="920" cy="350" r="6" fill="#b88b70"/>
+  <rect x="745" y="370" width="350" height="82" rx="8" fill="#e8e5dc" stroke="#d8d5ca" stroke-width="2"/>
+  <text x="775" y="420" fill="#173b35" font-family="ui-monospace,monospace" font-size="24">next token</text>
+  <path d="M745 490h350" stroke="#d8d5ca" stroke-width="2"/>
+  <text x="745" y="526" fill="#42665c" font-family="system-ui,sans-serif" font-size="18">Independent teaching project · Made by Abdi</text>
+</svg>

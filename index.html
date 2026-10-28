@@ -2,12 +2,56 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gpt-tutorial</title>
+    <meta name="description" content="Follow a sentence through a GPT-2 Small–style teaching model to understand tokenisation, representations, attention, and next-token selection." />
+    <meta name="theme-color" content="#f3f1eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How a Machine Continues Text" />
+    <meta property="og:description" content="Follow one sentence through token IDs, representations, attention, and a next-token choice." />
+    <meta property="og:image" content="https://abditimer.github.io/explain_ai/social-preview.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:alt" content="A sentence moves from token IDs through attention to a next-token choice." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <title>How a Machine Continues Text</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main id="app-loading-fallback" hidden role="status" aria-live="polite" style="max-width: 42rem; margin: 3rem auto; padding: 0 1rem; color: #173b35; font: 1rem/1.7 system-ui, sans-serif;">
+        <h1>How a machine continues text</h1>
+        <p id="app-loading-message">Preparing the explanation…</p>
+        <a id="app-reload-link" href="%BASE_URL%" hidden>Reload this page</a>
+      </main>
+    </div>
+    <noscript>
+      <main style="max-width: 42rem; margin: 3rem auto; padding: 0 1rem; color: #173b35; font: 1rem/1.7 system-ui, sans-serif;">
+        <h1>How a machine continues text</h1>
+        <p>Follow “The cat sat on the” through a GPT-2 Small–style teaching model. A tokenizer turns text into token IDs; learned token and position vectors enter causal attention and feed-forward layers; the final position produces scores for possible next tokens.</p>
+        <p>This is an architecture explanation, not a trained checkpoint or recorded model prediction. See the project’s educational content audit for sources and simplifications.</p>
+      </main>
+    </noscript>
+    <script>
+      (() => {
+        const fallback = document.getElementById('app-loading-fallback');
+        const message = document.getElementById('app-loading-message');
+        const reload = document.getElementById('app-reload-link');
+        const showLoadError = () => {
+          message.textContent = 'The explanation could not load. Check your connection and try again.';
+          reload.hidden = false;
+          fallback.hidden = false;
+          fallback.setAttribute('role', 'alert');
+          fallback.removeAttribute('aria-live');
+        };
+        document.addEventListener('error', (event) => {
+          if (event.target instanceof HTMLScriptElement && event.target.type === 'module') showLoadError();
+        }, true);
+        window.addEventListener('vite:preloadError', (event) => {
+          event.preventDefault();
+          showLoadError();
+        });
+        fallback.hidden = false;
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

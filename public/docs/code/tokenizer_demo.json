@@ -1,0 +1,56 @@
+{
+  "kind": "tokenizer_output",
+  "input_text": "The cat sat on the",
+  "tokenizer": "gpt2",
+  "token_ids": [
+    464,
+    3797,
+    3332,
+    319,
+    262
+  ],
+  "token_pieces": [
+    "The",
+    " cat",
+    " sat",
+    " on",
+    " the"
+  ],
+  "decoded_text": "The cat sat on the",
+  "candidate_tokenizations": [
+    {
+      "text": " mat",
+      "token_ids": [
+        2603
+      ],
+      "token_pieces": [
+        " mat"
+      ]
+    },
+    {
+      "text": " floor",
+      "token_ids": [
+        4314
+      ],
+      "token_pieces": [
+        " floor"
+      ]
+    },
+    {
+      "text": " sofa",
+      "token_ids": [
+        34902
+      ],
+      "token_pieces": [
+        " sofa"
+      ]
+    }
+  ],
+  "source_sha256": "a0593cdac2f799398b401f1a95eadc5924645f9bcf5526d84e2a8a8f9f44964a",
+  "configuration": {
+    "tiktoken_version": "0.9.0",
+    "python_version": "3.12.12",
+    "model_checkpoint": null
+  },
+  "note": "Tokenizer output only; no model inference or probability values were recorded."
+}

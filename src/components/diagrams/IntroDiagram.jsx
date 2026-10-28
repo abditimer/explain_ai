@@ -2,8 +2,8 @@ import { useCallback } from 'react';
 import { useDiagramSetup } from './useDiagramSetup';
 
 const W = 480, H = 340;
-const SENTENCE = ['The', 'cat', 'sat', 'on', 'the', 'mat'];
 const COLORS = ['#60a5fa','#a78bfa','#f472b6','#fb923c','#34d399','#818cf8'];
+const CONTINUATIONS = [' mat', ' floor', ' sofa'];
 
 export function IntroDiagram({ step = 0 }) {
   const initFn = useCallback((svg) => {
@@ -11,48 +11,51 @@ export function IntroDiagram({ step = 0 }) {
 
     svg.append('text')
       .attr('class', 'sentence-label')
-      .attr('x', W / 2).attr('y', 58)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#e8e8f0').attr('font-size', 20).attr('font-family', 'Inter, sans-serif').attr('font-weight', 500)
-      .text('The cat sat on the mat');
+      .attr('data-object-id', 'sentence.prefix')
+      .attr('x', 34).attr('y', 66)
+      .attr('text-anchor', 'start')
+      .attr('fill', '#e8e8f0').attr('font-size', 20).attr('font-family', 'Manrope Variable, sans-serif').attr('font-weight', 500)
+      .text('The cat sat on the');
 
-    const tokenG = svg.append('g').attr('class', 'tokens').attr('opacity', 0);
-    SENTENCE.forEach((word, i) => {
-      const x = 16 + i * 75;
-      tokenG.append('rect').attr('x', x).attr('y', 90).attr('width', 65).attr('height', 42)
-        .attr('rx', 7).attr('fill', COLORS[i]).attr('opacity', 0.22);
-      tokenG.append('text').attr('x', x + 32).attr('y', 116)
-        .attr('text-anchor', 'middle').attr('fill', COLORS[i])
-        .attr('font-size', 14).attr('font-family', 'Inter, sans-serif').attr('font-weight', 700)
-        .text(word);
-    });
+    svg.append('rect').attr('x', 330).attr('y', 39).attr('width', 116).attr('height', 40)
+      .attr('rx', 7).attr('fill', 'none').attr('stroke', '#a78bfa').attr('stroke-dasharray', '5,4')
+      .attr('data-object-id', 'sentence.missing-continuation');
+    svg.append('text').attr('x', 388).attr('y', 65).attr('text-anchor', 'middle')
+      .attr('fill', '#a78bfa').attr('font-size', 18).attr('font-family', 'Manrope Variable, sans-serif')
+      .text('…?');
 
     svg.append('text').attr('class', 'arrow-line')
-      .attr('x', W / 2).attr('y', 175)
-      .attr('text-anchor', 'middle').attr('fill', '#334155')
-      .attr('font-size', 13).attr('font-family', 'Inter, sans-serif').attr('opacity', 0)
-      .text('↓  next token prediction');
+      .attr('x', W / 2).attr('y', 132)
+      .attr('text-anchor', 'middle').attr('fill', '#cbd5e1')
+      .attr('font-size', 13).attr('font-family', 'Manrope Variable, sans-serif').attr('opacity', 0)
+      .text('What might come next?');
 
-    const predG = svg.append('g').attr('class', 'predict').attr('opacity', 0);
-    predG.append('rect').attr('x', W / 2 - 60).attr('y', 192).attr('width', 120).attr('height', 50)
-      .attr('rx', 8).attr('fill', '#0f172a').attr('stroke', '#60a5fa').attr('stroke-width', 1.5);
-    predG.append('text').attr('x', W / 2).attr('y', 223)
-      .attr('text-anchor', 'middle').attr('fill', '#60a5fa')
-      .attr('font-size', 20).attr('font-family', 'monospace').attr('font-weight', 700)
-      .text('"?"');
+    const predG = svg.append('g').attr('class', 'predict').attr('data-object-id', 'sentence.candidates').attr('opacity', 0);
+    CONTINUATIONS.forEach((candidate, i) => {
+      const x = 34 + i * 142;
+      const candidateG = predG.append('g').attr('data-object-id', `sentence.candidate.${i + 1}`);
+      candidateG.append('rect').attr('x', x).attr('y', 158).attr('width', 124).attr('height', 48)
+        .attr('rx', 8).attr('fill', '#172033').attr('stroke', COLORS[i]).attr('stroke-width', 1.5);
+      candidateG.append('text').attr('x', x + 62).attr('y', 188)
+        .attr('text-anchor', 'middle').attr('fill', COLORS[i])
+        .attr('font-size', 19).attr('font-family', 'ui-monospace, monospace').attr('font-weight', 700)
+        .text(candidate);
+    });
+    predG.append('text').attr('x', W / 2).attr('y', 230).attr('text-anchor', 'middle')
+      .attr('fill', '#cbd5e1').attr('font-size', 10).attr('font-family', 'Manrope Variable, sans-serif')
+      .text('Editorial examples · not model predictions');
 
     svg.append('text').attr('class', 'sub-label')
       .attr('x', W / 2).attr('y', 285)
-      .attr('text-anchor', 'middle').attr('fill', '#1e293b')
-      .attr('font-size', 11).attr('font-family', 'Inter, sans-serif').attr('opacity', 0)
-      .text('autoregressive — one token at a time');
+      .attr('text-anchor', 'middle').attr('fill', '#cbd5e1')
+      .attr('font-size', 11).attr('font-family', 'Manrope Variable, sans-serif').attr('opacity', 0)
+      .text('A model selects one token at a time');
   }, []);
 
   const updateFn = useCallback((svg, s) => {
-    svg.select('.tokens').transition().duration(500).attr('opacity', s >= 1 ? 1 : 0);
-    svg.select('.arrow-line').transition().duration(400).delay(100).attr('opacity', s >= 2 ? 1 : 0);
-    svg.select('.predict').transition().duration(500).delay(200).attr('opacity', s >= 2 ? 1 : 0);
-    svg.select('.sub-label').transition().duration(400).delay(300).attr('opacity', s >= 3 ? 1 : 0);
+    svg.select('.arrow-line').attr('opacity', Math.max(0, Math.min(1, s - 1)));
+    svg.select('.predict').attr('opacity', Math.max(0, Math.min(1, s - 1)));
+    svg.select('.sub-label').attr('opacity', Math.max(0, Math.min(1, s - 2)));
   }, []);
 
   const svgRef = useDiagramSetup({ initFn, updateFn, step });

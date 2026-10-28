@@ -3,14 +3,15 @@ import { useCallback } from 'react';
 import { useDiagramSetup } from './useDiagramSetup';
 
 const W = 480, H = 340;
+const BLOCK_COUNT = 12;
 
 export function BlockDiagram({ step = 0 }) {
   const initFn = useCallback((svg) => {
     svg.attr('viewBox', `0 0 ${W} ${H}`).attr('width', '100%').attr('height', '100%');
 
     svg.append('text').attr('x', W / 2).attr('y', 28)
-      .attr('text-anchor', 'middle').attr('fill', '#334155')
-      .attr('font-size', 11).attr('font-family', 'Inter, sans-serif').attr('letter-spacing', '0.1em')
+      .attr('text-anchor', 'middle').attr('fill', '#cbd5e1')
+      .attr('font-size', 11).attr('font-family', 'Manrope Variable, sans-serif').attr('letter-spacing', '0.1em')
       .text('TRANSFORMER BLOCK (ONE OF 12)');
 
     // Input label
@@ -25,16 +26,16 @@ export function BlockDiagram({ step = 0 }) {
       .attr('stroke', '#334155').attr('stroke-width', 1.5).attr('opacity', 0);
 
     // Attention box
-    const attnG = svg.append('g').attr('class', 'blk-attn').attr('opacity', 0);
+    const attnG = svg.append('g').attr('class', 'blk-attn').attr('data-object-id', 'block.attention').attr('opacity', 0);
     attnG.append('rect').attr('x', W / 2 - 90).attr('y', 86).attr('width', 180).attr('height', 60)
       .attr('rx', 8).attr('fill', '#1e3a5f').attr('stroke', '#60a5fa').attr('stroke-width', 1.5);
     attnG.append('text').attr('x', W / 2).attr('y', 111)
       .attr('text-anchor', 'middle').attr('fill', '#60a5fa')
-      .attr('font-size', 13).attr('font-family', 'Inter, sans-serif').attr('font-weight', 600)
+      .attr('font-size', 13).attr('font-family', 'Manrope Variable, sans-serif').attr('font-weight', 600)
       .text('LayerNorm → Attention');
     attnG.append('text').attr('x', W / 2).attr('y', 132)
       .attr('text-anchor', 'middle').attr('fill', '#93c5fd')
-      .attr('font-size', 11).attr('font-family', 'Inter, sans-serif')
+      .attr('font-size', 11).attr('font-family', 'Manrope Variable, sans-serif')
       .text('Dropout → residual add');
 
     // Connector attn → ffn
@@ -43,16 +44,16 @@ export function BlockDiagram({ step = 0 }) {
       .attr('stroke', '#334155').attr('stroke-width', 1.5).attr('opacity', 0);
 
     // FFN box
-    const ffnG = svg.append('g').attr('class', 'blk-ffn').attr('opacity', 0);
+    const ffnG = svg.append('g').attr('class', 'blk-ffn').attr('data-object-id', 'block.feedforward').attr('opacity', 0);
     ffnG.append('rect').attr('x', W / 2 - 90).attr('y', 170).attr('width', 180).attr('height', 60)
       .attr('rx', 8).attr('fill', '#1a3a2a').attr('stroke', '#34d399').attr('stroke-width', 1.5);
     ffnG.append('text').attr('x', W / 2).attr('y', 195)
       .attr('text-anchor', 'middle').attr('fill', '#34d399')
-      .attr('font-size', 13).attr('font-family', 'Inter, sans-serif').attr('font-weight', 600)
+      .attr('font-size', 13).attr('font-family', 'Manrope Variable, sans-serif').attr('font-weight', 600)
       .text('LayerNorm → FFN');
     ffnG.append('text').attr('x', W / 2).attr('y', 216)
       .attr('text-anchor', 'middle').attr('fill', '#6ee7b7')
-      .attr('font-size', 11).attr('font-family', 'Inter, sans-serif')
+      .attr('font-size', 11).attr('font-family', 'Manrope Variable, sans-serif')
       .text('Dropout → residual add');
 
     // Output label
@@ -67,9 +68,11 @@ export function BlockDiagram({ step = 0 }) {
     // Left skip — attention residual
     resG.append('path')
       .attr('d', `M${W/2-110},86 L${W/2-110},62 L${W/2-20},62`)
+      .attr('data-object-id', 'block.residual.attention')
       .attr('stroke', '#f472b6').attr('stroke-width', 1.5).attr('stroke-dasharray', '5,3').attr('fill', 'none');
     resG.append('path')
       .attr('d', `M${W/2-110},148 L${W/2-110},162 L${W/2-20},162`)
+      .attr('data-object-id', 'block.residual.feedforward')
       .attr('stroke', '#f472b6').attr('stroke-width', 1.5).attr('stroke-dasharray', '5,3').attr('fill', 'none');
     resG.append('circle').attr('cx', W/2-20).attr('cy', 62).attr('r', 7)
       .attr('fill', '#1e293b').attr('stroke', '#f472b6').attr('stroke-width', 1.5);
@@ -83,27 +86,66 @@ export function BlockDiagram({ step = 0 }) {
     // Residual label
     resG.append('text').attr('x', W/2-118).attr('y', 120)
       .attr('text-anchor', 'middle').attr('fill', '#f472b6')
-      .attr('font-size', 10).attr('font-family', 'Inter, sans-serif').attr('transform', `rotate(-90,${W/2-118},120)`)
+      .attr('font-size', 10).attr('font-family', 'Manrope Variable, sans-serif').attr('transform', `rotate(-90,${W/2-118},120)`)
       .text('residual skip');
 
     // ×12 badge
-    svg.append('rect').attr('class', 'blk-badge').attr('x', W/2+100).attr('y', 120)
+    svg.append('rect').attr('class', 'blk-badge').attr('data-object-id', 'block.stack-count').attr('x', W/2+100).attr('y', 120)
       .attr('width', 52).attr('height', 28).attr('rx', 6)
       .attr('fill', '#1e293b').attr('stroke', '#818cf8').attr('stroke-width', 1).attr('opacity', 0);
     svg.append('text').attr('class', 'blk-badge').attr('x', W/2+126).attr('y', 139)
       .attr('text-anchor', 'middle').attr('fill', '#818cf8')
-      .attr('font-size', 13).attr('font-family', 'Inter, sans-serif').attr('font-weight', 700).attr('opacity', 0)
+      .attr('font-size', 13).attr('font-family', 'Manrope Variable, sans-serif').attr('font-weight', 700).attr('opacity', 0)
       .text('× 12');
+
+    // Pull back from one expanded block to the repeated stack while keeping
+    // one token position visible as it is transformed at every depth.
+    const stackG = svg.append('g').attr('class', 'blk-stack-overview')
+      .attr('data-object-id', 'block.stack-overview').attr('opacity', 0);
+    stackG.append('text').attr('x', W / 2).attr('y', 30).attr('text-anchor', 'middle')
+      .attr('fill', '#cbd5e1').attr('font-size', 11).attr('font-family', 'Manrope Variable, sans-serif')
+      .attr('letter-spacing', '0.08em').text('THE SAME TOKEN POSITION THROUGH 12 BLOCKS');
+    stackG.append('text').attr('x', 70).attr('y', 53).attr('text-anchor', 'middle')
+      .attr('fill', '#f9a8d4').attr('font-size', 10).attr('font-family', 'Manrope Variable, sans-serif')
+      .text('tracked vector');
+    const stackTop = 65, rowHeight = 17, stackX = 180, stackWidth = 170;
+    stackG.append('path').attr('data-object-id', 'block.stack-token-path')
+      .attr('d', `M70,59 L70,${stackTop + BLOCK_COUNT * rowHeight + 7}`)
+      .attr('fill', 'none').attr('stroke', '#f472b6').attr('stroke-width', 2);
+    Array.from({ length: BLOCK_COUNT }, (_, index) => {
+      const y = stackTop + index * rowHeight;
+      stackG.append('circle').attr('cx', 70).attr('cy', y + 7).attr('r', 3.5)
+        .attr('fill', '#f472b6').attr('data-object-id', `block.stack-token.${index + 1}`);
+      stackG.append('line').attr('x1', 74).attr('x2', stackX).attr('y1', y + 7).attr('y2', y + 7)
+        .attr('stroke', '#475569').attr('stroke-width', 1);
+      stackG.append('rect').attr('x', stackX).attr('y', y).attr('width', stackWidth).attr('height', 14)
+        .attr('rx', 3).attr('fill', index % 2 ? '#173b35' : '#1a3a2a')
+        .attr('stroke', '#34d399').attr('stroke-width', 0.8)
+        .attr('data-object-id', `block.stack-layer.${index + 1}`);
+      stackG.append('text').attr('x', stackX + 10).attr('y', y + 10.5)
+        .attr('fill', '#cbd5e1').attr('font-size', 9).attr('font-family', 'JetBrains Mono, monospace')
+        .text(`Block ${index + 1}`);
+    });
+    stackG.append('path').attr('d', `M70,${stackTop + BLOCK_COUNT * rowHeight + 7} L70,${stackTop + BLOCK_COUNT * rowHeight + 23}`)
+      .attr('fill', 'none').attr('stroke', '#f472b6').attr('stroke-width', 2);
+    stackG.append('text').attr('x', 70).attr('y', stackTop + BLOCK_COUNT * rowHeight + 39).attr('text-anchor', 'middle')
+      .attr('fill', '#f9a8d4').attr('font-size', 10).attr('font-family', 'Manrope Variable, sans-serif')
+      .text('updated vector');
+    stackG.append('text').attr('x', stackX + stackWidth + 12).attr('y', stackTop + BLOCK_COUNT * rowHeight / 2)
+      .attr('fill', '#94a3b8').attr('font-size', 10).attr('font-family', 'Manrope Variable, sans-serif')
+      .text('12 distinct blocks');
   }, []);
 
   const updateFn = useCallback((svg, s) => {
-    svg.selectAll('.blk-input').transition().duration(400).attr('opacity', s >= 1 ? 1 : 0);
-    svg.select('.blk-attn').transition().duration(400).attr('opacity', s >= 1 ? 1 : 0);
-    svg.select('.blk-conn').transition().duration(400).attr('opacity', s >= 2 ? 1 : 0);
-    svg.select('.blk-ffn').transition().duration(400).delay(150).attr('opacity', s >= 2 ? 1 : 0);
-    svg.select('.blk-output').transition().duration(400).delay(200).attr('opacity', s >= 2 ? 1 : 0);
-    svg.select('.blk-res').transition().duration(400).delay(200).attr('opacity', s >= 3 ? 1 : 0);
-    svg.selectAll('.blk-badge').transition().duration(400).delay(300).attr('opacity', s >= 3 ? 1 : 0);
+    const detailOpacity = 1 - Math.max(0, Math.min(1, s - 3));
+    svg.selectAll('.blk-input').attr('opacity', Math.max(0, Math.min(1, s)) * detailOpacity);
+    svg.select('.blk-attn').attr('opacity', Math.max(0, Math.min(1, s)) * detailOpacity);
+    svg.select('.blk-conn').attr('opacity', Math.max(0, Math.min(1, s - 1)) * detailOpacity);
+    svg.select('.blk-ffn').attr('opacity', Math.max(0, Math.min(1, s - 1)) * detailOpacity);
+    svg.select('.blk-output').attr('opacity', Math.max(0, Math.min(1, s - 1)) * detailOpacity);
+    svg.select('.blk-res').attr('opacity', Math.max(0, Math.min(1, s - 2)) * detailOpacity);
+    svg.selectAll('.blk-badge').attr('opacity', Math.max(0, Math.min(1, s - 2)) * detailOpacity);
+    svg.select('.blk-stack-overview').attr('opacity', Math.max(0, Math.min(1, s - 3)));
   }, []);
 
   const svgRef = useDiagramSetup({ initFn, updateFn, step });

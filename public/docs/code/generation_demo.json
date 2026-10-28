@@ -1,0 +1,65 @@
+{
+  "kind": "illustrative_softmax_output",
+  "input": {
+    "logits": [
+      2,
+      1,
+      0
+    ],
+    "temperatures": [
+      0.5,
+      1,
+      2
+    ],
+    "candidates": [
+      {
+        "text": " mat",
+        "tokenId": 2603
+      },
+      {
+        "text": " floor",
+        "tokenId": 4314
+      },
+      {
+        "text": " sofa",
+        "tokenId": 34902
+      }
+    ]
+  },
+  "output": [
+    {
+      "temperature": 0.5,
+      "probabilities": [
+        0.8668133321973347,
+        0.11731042782619835,
+        0.015876239976466762
+      ]
+    },
+    {
+      "temperature": 1,
+      "probabilities": [
+        0.6652409557748218,
+        0.24472847105479764,
+        0.09003057317038046
+      ]
+    },
+    {
+      "temperature": 2,
+      "probabilities": [
+        0.506480391055654,
+        0.3071958857184984,
+        0.1863237232258476
+      ]
+    }
+  ],
+  "calculation": "softmax(logits / temperature), with max subtraction for numerical stability",
+  "provenance": {
+    "source": "src/data/toySoftmax.js",
+    "source_sha256": "9f7ee868c535648f9dacf574078e3e60af2a1f21b4216cad6b2c4d14b1319149",
+    "tokenizer_artifact": "docs/code/tokenizer_demo.json",
+    "tokenizer_artifact_sha256": "d93e923f585dc55b5ef2cfddc996edfdc97f8d5d04f4bd86d7294829a24de94a",
+    "runtime": "Node.js 22.21.1",
+    "checkpoint": null
+  },
+  "note": "Fixed illustrative logits only. Probabilities are not model outputs; candidate strings are editorial labels for the three toy scores."
+}

@@ -13,12 +13,12 @@
 /* ─── Layout shell ─────────────────────────────────────────────────── */
 .experience-shell {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 1fr);
   align-items: start;
   max-width: 1340px;
   margin: 0 auto;
   padding: 0 2rem;
-  /* account for fixed 56px chapter-nav on the right */
+  /* account for fixed chapter navigation */
   padding-right: calc(56px + 2rem);
   gap: 0;
 }
@@ -29,6 +29,81 @@
   padding-bottom: 50vh;
   padding-right: 3rem;
 }
+
+.code-column {
+  min-width: 0;
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  padding: 1rem 0.75rem;
+  background: #172420;
+  border-inline: 1px solid #d7dfd9;
+  color: #f5f1e7;
+}
+
+/* The bundled GitHub theme is tuned for a different panel color and dims
+   comments below AA. Keep syntax colors matched to this spruce surface. */
+.structured-code .hljs { color: #e4e8e2; background: transparent; }
+.structured-code .hljs-doctag,
+.structured-code .hljs-keyword,
+.structured-code .hljs-meta .hljs-keyword,
+.structured-code .hljs-template-tag,
+.structured-code .hljs-template-variable,
+.structured-code .hljs-type,
+.structured-code .hljs-variable.language_ { color: #ff9b91; }
+.structured-code .hljs-title,
+.structured-code .hljs-title.class_,
+.structured-code .hljs-title.class_.inherited__,
+.structured-code .hljs-title.function_ { color: #e5c7ff; }
+.structured-code .hljs-attr,
+.structured-code .hljs-attribute,
+.structured-code .hljs-literal,
+.structured-code .hljs-meta,
+.structured-code .hljs-number,
+.structured-code .hljs-operator,
+.structured-code .hljs-variable,
+.structured-code .hljs-selector-attr,
+.structured-code .hljs-selector-class,
+.structured-code .hljs-selector-id { color: #8bc8ff; }
+.structured-code .hljs-regexp,
+.structured-code .hljs-string,
+.structured-code .hljs-meta .hljs-string { color: #a8d8ff; }
+.structured-code .hljs-built_in,
+.structured-code .hljs-symbol { color: #ffb36f; }
+.structured-code .hljs-comment,
+.structured-code .hljs-code,
+.structured-code .hljs-formula { color: #9aa6b2; }
+.structured-code .hljs-name,
+.structured-code .hljs-quote,
+.structured-code .hljs-selector-tag,
+.structured-code .hljs-selector-pseudo { color: #a5e5a2; }
+.structured-code .hljs-section { color: #8bc8ff; }
+.structured-code .hljs-bullet { color: #f4d779; }
+
+.code-surface-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: #172420;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.code-surface-heading a,
+.step-code-reference a { color: #d7c9ff; }
+.persistent-code-block { border-top: 1px solid #3b4b44; padding: 0.5rem 0; }
+.persistent-code-block h2 { margin: 0.25rem 0 0; font-size: 0.8rem; color: #e7dfc8; }
+.code-operation-label { margin: 0.35rem 0; color: #d7c9ff; font: 0.65rem/1.5 ui-monospace, monospace; }
+.persistent-code-block.is-active { border-left: 3px solid #d7c9ff; padding-left: 0.35rem; }
+.structured-code { margin: 0; padding: 0.5rem 0; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.68rem/1.55 ui-monospace, monospace; }
+.code-line { display: flex; min-height: 1.55em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-line > span:last-child { flex: 1 1 0; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code-line-number { flex: 0 0 2.5rem; padding-right: 0.5rem; color: #89988f; text-align: right; user-select: none; }
+.code-line.is-relevant { background: rgb(215 201 255 / 12%); }
+.code-line-gap { display: block; padding: 0.25rem 2.5rem; color: #89988f; font: 0.65rem/1.4 ui-monospace, monospace; }
+.code-transition-ghost { color: #f5f1e7; background: #27352f; box-shadow: 0 5px 22px rgb(23 36 32 / 30%); border: 1px solid #b8a5f5; border-radius: 4px; }
+.step-code-reference { font-size: 0.78rem; }
 
 /* ─── Hero ─────────────────────────────────────────────────────────── */
 .story-hero {
@@ -50,39 +125,10 @@
 
 .story-hero-sub {
   font-size: 1.05rem;
-  color: #475569;
+  color: #94a3b8;
   max-width: 44ch;
   line-height: 1.7;
   margin: 0;
-  opacity: 0;
-  transition: opacity 0.7s ease;
-}
-.story-hero-sub.is-visible { opacity: 1; }
-
-/* ── Typewriter ── */
-.typewriter-line {
-  display: block;
-}
-
-@keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-@keyframes cursorFadeOut {
-  to { opacity: 0; }
-}
-
-.typewriter-cursor::after {
-  content: '|';
-  font-weight: 300;
-  color: #60a5fa;
-  animation: cursorBlink 0.65s step-end infinite;
-}
-
-.typewriter-cursor.is-done::after {
-  /* blink 3 times (~2s), then fade */
-  animation: cursorBlink 0.65s step-end 3, cursorFadeOut 0.4s ease 1.95s forwards;
 }
 
 .hero-scroll-hint {
@@ -101,7 +147,7 @@
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #1e293b;
+  color: #94a3b8;
 }
 
 /* ─── Scroll steps ─────────────────────────────────────────────────── */
@@ -112,11 +158,23 @@
   justify-content: center;
   padding: 3rem 0;
   border-top: 1px solid #0f1622;
-  opacity: 0.3;
-  transition: opacity 0.5s ease;
+  padding-left: 0.75rem;
+  border-left: 2px solid transparent;
 }
 
-.story-step.is-active { opacity: 1; }
+.story-step.is-active { border-left-color: #8b78c8; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  .top-bar,
+  .code-transition-ghost { display: none; }
+}
 
 /* Section header (shown on first step only) */
 .section-header {
@@ -177,7 +235,7 @@
 
 .stat-label {
   font-size: 0.62rem;
-  color: #334155;
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
@@ -187,7 +245,7 @@
   padding: 0.5rem 0.9rem;
   margin: 0;
   font-size: 0.875rem;
-  color: #475569;
+  color: #cbd5e1;
   font-style: italic;
   line-height: 1.65;
   max-width: 44ch;
@@ -200,66 +258,10 @@
   justify-content: center;
   padding: 3rem 0;
   font-size: 1.05rem;
-  color: #334155;
+  color: #cbd5e1;
 }
 .story-end p { margin: 0 0 0.4rem; }
-.story-end-sub { font-size: 0.82rem; color: #1e293b; }
-
-/* ─── Inline step code (left column) ───────────────────────────────── */
-.step-code {
-  margin-top: 1.25rem;
-  background: #090d14;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.step-code-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.85rem;
-  background: #060a10;
-  border-bottom: 1px solid #0f1622;
-}
-
-.window-chrome { display: flex; gap: 5px; }
-.dot { width: 9px; height: 9px; border-radius: 50%; }
-.dot.red    { background: #ff5f57; }
-.dot.yellow { background: #febc2e; }
-.dot.green  { background: #28c840; }
-
-.step-code-title {
-  flex: 1;
-  font-size: 0.7rem;
-  color: #334155;
-  font-family: 'JetBrains Mono', monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.expand-btn {
-  background: none;
-  border: 1px solid #1e293b;
-  color: #475569;
-  border-radius: 4px;
-  width: 19px; height: 19px;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: color 0.2s, border-color 0.2s;
-  flex-shrink: 0;
-}
-.expand-btn:hover { color: #94a3b8; border-color: #334155; }
-
-.step-code-body {
-  overflow-y: auto;
-  overflow-x: auto;
-  max-height: 200px;
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.step-code-body.is-expanded { max-height: 520px; }
+.story-end-sub { font-size: 0.82rem; color: #94a3b8; }
 
 /* ─── Diagram column (sticky, full height) ──────────────────────────── */
 .diagram-column {
@@ -293,6 +295,38 @@
   background: #090d14;
   flex-shrink: 0;
 }
+
+.attention-token-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  border-bottom: 1px solid #1e293b;
+}
+.attention-token-controls button {
+  min-width: 2.8rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid #475569;
+  border-radius: 5px;
+  background: #111827;
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+}
+.attention-token-controls button[aria-pressed="true"] { border-color: #fb923c; color: #fff; background: #3a291b; }
+.generation-controls { padding: 0.45rem 0.8rem; border-bottom: 1px solid #1e293b; color: #cbd5e1; font-size: 0.7rem; }
+.generation-controls label { display: flex; align-items: center; justify-content: space-between; }
+.generation-controls output { color: #fff; font-family: ui-monospace, monospace; }
+.generation-controls input { width: 100%; min-height: 1.6rem; accent-color: #a78bfa; }
+.generation-controls p { margin: 0; color: #94a3b8; line-height: 1.45; }
+.continuation-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+.continuation-controls span { width: 100%; }
+.continuation-controls button { border: 1px solid #475569; border-radius: 5px; padding: 0.25rem 0.45rem; background: #172033; color: #e2e8f0; font: inherit; cursor: pointer; }
+.continuation-controls button[aria-pressed="true"] { border-color: #34d399; color: #fff; }
 
 .diagram-section-badge {
   font-size: 0.6rem;
@@ -328,39 +362,30 @@
 .diagram-canvas {
   flex: 1;
   min-height: 0;
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
 }
 
-/* Crossfade — fade-in on enter, fade-out on exit */
-@keyframes diagramFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes diagramFadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-6px); }
-}
-
 .diagram-canvas-inner {
   width: 100%;
   height: 100%;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  animation: diagramFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.diagram-canvas-inner.is-exiting {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  animation: diagramFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.diagram-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
+
+.diagram-canvas-inner.is-active {
+  display: flex;
+}
+.diagram-loading { padding: 1rem; color: #cbd5e1; font-size: 0.85rem; text-align: center; }
 
 /* ─── Accent colours ────────────────────────────────────────────────── */
 .signal-blue   { color: #60a5fa; }
@@ -378,7 +403,16 @@
 @media (max-width: 900px) {
   .experience-shell {
     grid-template-columns: 1fr;
-    /* Diagram column comes first in source, so it sticks above text on mobile */
+    padding: 0 1.5rem;
+  }
+
+  .code-column {
+    position: static;
+    order: 0;
+    max-height: none;
+    overflow: visible;
+    margin: 1rem;
+    border: 1px solid #d7dfd9;
   }
 
   /* Diagram: sticky strip at top, fixed height */
@@ -386,8 +420,8 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    height: 42vw;
-    min-height: 240px;
+    height: clamp(250px, 58vw, 340px);
+    min-height: 250px;
     max-height: 340px;
     padding: 0.75rem;
     background: #06080f;
@@ -406,8 +440,7 @@
   .story-column {
     padding-right: 1.25rem;
     padding-left: 1.25rem;
-    /* Extra bottom padding so last step isn't hidden behind mobile nav bar */
-    padding-bottom: calc(30vh + 52px);
+    padding-bottom: 30vh;
   }
 
   .story-hero {
@@ -429,13 +462,19 @@
     max-width: 100%;
   }
 
-  .step-code-body {
-    max-height: 180px;
+  .code-column {
+    grid-column: 1 / -1;
+    order: 2;
+    margin: 1rem;
+    padding: 1rem;
+    border: 1px solid #d7dfd9;
+    overflow: visible;
   }
 
-  .expand-btn {
-    min-width: 44px;
-    min-height: 44px;
+  .story-column { order: 0; }
+
+  .diagram-column {
+    order: -1;
   }
 
   .panel-stats {
@@ -446,8 +485,8 @@
 /* ── Phone (≤480px) ── */
 @media (max-width: 480px) {
   .diagram-column {
-    height: 52vw;
-    min-height: 200px;
+    height: clamp(250px, 68vw, 340px);
+    min-height: 250px;
   }
 
   .story-column {
@@ -472,7 +511,229 @@
     padding: 0.35rem 0.65rem;
   }
 
-  .step-code-body {
-    max-height: 160px;
+  .structured-code { font-size: 0.62rem; }
+}
+
+
+@media (max-height: 680px) {
+  .experience-shell { padding-right: 2rem; }
+  .code-column { position: static; }
+}
+
+@media (max-height: 680px) and (max-width: 900px) {
+  .experience-shell { padding: 0 1.25rem; }
+  .diagram-column {
+    position: static;
+    height: clamp(200px, 40vh, 240px);
+    min-height: 200px;
+    max-height: 240px;
   }
+}
+
+/* Editorial reading surface: warm paper for the story, spruce for code, and
+   the deep diagram canvas as a deliberate contrast between explanation and model. */
+:root {
+  --paper: #f3f1eb;
+  --paper-deep: #e8e5dc;
+  --spruce: #173b35;
+  --spruce-soft: #42665c;
+  --lavender-ink: #65518e;
+  --apricot-ink: #9a512c;
+}
+html, body { background: var(--paper); color: var(--spruce); }
+.top-bar { height: 3px; background: linear-gradient(90deg, #536f8d 0%, #786a99 55%, #bb8060 100%); }
+.experience-shell {
+  max-width: 1540px;
+  grid-template-columns: minmax(300px, 1.05fr) minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  padding-top: 0.75rem;
+}
+.story-column { padding-right: clamp(1.5rem, 3vw, 3.5rem); }
+.story-hero { min-height: 84vh; padding: 4rem 0 6rem; justify-content: center; }
+.story-hero::before {
+  content: 'A FIELD GUIDE TO LANGUAGE MODELS';
+  display: block;
+  margin-bottom: 1.4rem;
+  color: var(--spruce-soft);
+  font: 700 0.64rem/1.4 ui-monospace, monospace;
+  letter-spacing: 0.17em;
+}
+.story-hero-title {
+  max-width: 9ch;
+  color: var(--spruce);
+  font-family: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  font-size: clamp(3rem, 5.2vw, 5.4rem);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+.story-hero-sub { max-width: 34ch; color: #49665f; font-size: 1.08rem; line-height: 1.75; }
+.hero-scroll-hint { margin-top: 2.8rem; }
+.scroll-hint-line { width: 38px; height: 2px; background: #b1a4c6; }
+.scroll-hint-text { color: var(--spruce-soft); font-size: 0.62rem; font-weight: 700; }
+.story-step {
+  position: relative;
+  min-height: 76vh;
+  padding: 4.5rem 0.5rem 4.5rem 1.25rem;
+  border-top: 1px solid #d7d5cb;
+  border-left: 2px solid transparent;
+}
+.story-step.is-active { border-left-color: #8e7cae; }
+.eyebrow { color: var(--spruce-soft); }
+.panel-title {
+  max-width: 15ch;
+  color: var(--spruce);
+  font-family: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+}
+.step-caption { max-width: 40ch; color: #3b5650; font-size: 1.08rem; line-height: 1.9; }
+.step-code-reference { color: #526860; font-size: 0.72rem; line-height: 1.7; }
+.step-code-reference a { color: var(--lavender-ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.panel-stats { gap: 0.55rem; }
+.stat-chip { min-width: 5.5rem; background: #ebe9e1; border-color: #d8d6cc; border-radius: 4px; padding: 0.65rem 0.75rem; }
+.stat-value { color: var(--spruce); }
+.stat-label { color: #526860; font-size: 0.58rem; }
+.panel-callout { border-left-color: #b5a6ca; color: #5e5370; font-family: 'Fraunces Variable', Georgia, 'Times New Roman', serif; font-size: 1rem; }
+.code-column {
+  z-index: 2;
+  top: 1.25rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #335149;
+  border-radius: 8px;
+  background: #173b35;
+  box-shadow: 0 16px 44px rgb(31 48 42 / 12%);
+}
+.code-surface-heading { align-items: center; padding: 0.45rem 0.25rem 0.9rem; background: transparent; color: #b6c9be; font-size: 0.64rem; letter-spacing: 0.14em; }
+.code-surface-heading a { color: #e2d6ff; font-size: 0.66rem; letter-spacing: 0; text-transform: none; }
+.persistent-code-block { border-color: #436057; }
+.persistent-code-block h2 { color: #f2eddf; font: 500 1.25rem/1.2 Georgia, 'Times New Roman', serif; }
+.code-operation-label { color: #e1d3ff; font-size: 0.64rem; }
+.code-line-number, .code-line-gap { color: #a6b8ae; }
+.code-line.is-relevant { background: rgb(220 205 255 / 13%); }
+.diagram-column { padding: 1.25rem 1.5rem 1.25rem 1rem; }
+.diagram-frame { border-color: #d5d2c8; border-radius: 8px; box-shadow: 0 16px 44px rgb(31 48 42 / 10%); }
+.diagram-label { padding: 0.7rem 1rem; }
+.story-end {
+  min-height: 64vh;
+  margin: 3rem 0 4rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  display: block;
+  border: 1px solid #d8d5ca;
+  border-radius: 8px;
+  background: #eae8df;
+  color: var(--spruce);
+}
+.story-end-kicker { margin: 0 0 0.9rem; color: var(--spruce-soft); font: 700 0.64rem/1.4 ui-monospace, monospace; letter-spacing: 0.16em; }
+.story-end h2 { max-width: 13ch; margin: 0 0 1rem; font: 500 clamp(2.3rem, 4vw, 3.6rem)/1 'Fraunces Variable', Georgia, 'Times New Roman', serif; letter-spacing: -0.045em; }
+.story-end > p:not(.story-end-kicker) { max-width: 38ch; color: #49635c; line-height: 1.8; }
+.story-end-sub { margin-top: 1.5rem !important; font: 0.72rem/1.8 ui-monospace, monospace !important; color: #596c63 !important; }
+.story-end-links { display: flex; flex-wrap: wrap; gap: 0.7rem 1.1rem; margin-top: 1.8rem; padding-top: 1.2rem; border-top: 1px solid #d2cfc4; }
+.story-end-links a { color: var(--lavender-ink); font-size: 0.82rem; font-weight: 650; text-underline-offset: 3px; }
+.story-end-credit { margin-top: 1.5rem !important; font-size: 0.75rem; color: #596c63 !important; }
+.chapter-nav { border-left-color: #d7d4ca; background: var(--paper); }
+.chapter-section-num, .chapter-sub-num { color: #526860; }
+.chapter-section-item:hover .chapter-section-num, .chapter-sub-item:hover .chapter-sub-num { color: #243f38; }
+.chapter-section-item.is-past .chapter-section-num, .chapter-sub-num.is-past { color: #38594e; }
+.chapter-section-line, .chapter-sub-tick { background: #d1cec4; }
+.story-column .eyebrow.signal-blue { color: #285d85; }
+.story-column .eyebrow.signal-purple { color: #65518e; }
+.story-column .eyebrow.signal-pink { color: #914569; }
+.story-column .eyebrow.signal-orange { color: #934414; }
+.story-column .eyebrow.signal-green { color: #256b52; }
+.story-column .eyebrow.signal-teal { color: #176e68; }
+.story-column .eyebrow.signal-indigo { color: #4c53a1; }
+.story-column .eyebrow.signal-red { color: #9a4141; }
+.chapter-section-item.is-active .signal-blue { color: #285d85; }
+.chapter-section-item.is-active .signal-purple { color: #65518e; }
+.chapter-section-item.is-active .signal-pink { color: #914569; }
+.chapter-section-item.is-active .signal-orange { color: #934414; }
+.chapter-section-item.is-active .signal-green { color: #256b52; }
+.chapter-section-item.is-active .signal-teal { color: #176e68; }
+.chapter-section-item.is-active .signal-indigo { color: #4c53a1; }
+.chapter-section-item.is-active .signal-red { color: #9a4141; }
+
+@media (max-width: 900px) {
+  .experience-shell { padding-top: 0; }
+  .story-column { padding-right: 1rem; }
+  .story-hero { min-height: 56vh; padding: 3.2rem 0 2rem; }
+  .story-hero-title { max-width: 10ch; font-size: clamp(3rem, 11vw, 5rem); }
+  .code-column { margin: 1rem 0 2rem; border-radius: 8px; }
+  .diagram-column { padding: 0.65rem; }
+  .story-step { min-height: 68vh; padding: 3rem 0.25rem 3rem 1rem; }
+  .story-end { min-height: auto; margin: 1.5rem 0 3rem; }
+}
+@media (max-width: 480px) {
+  .story-hero { min-height: 58vh; }
+  .story-hero-title { font-size: clamp(2.8rem, 13vw, 4rem); }
+  .story-step { min-height: 72vh; }
+  .panel-title { font-size: 2.1rem; }
+}
+
+@media (max-width: 900px) {
+  .experience-shell { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Presenter mode keeps one narrative beat on screen and uses the same scene,
+   code, and diagram state as the self-guided journey. */
+.presentation-controls {
+  position: fixed;
+  z-index: 120;
+  top: 1rem;
+  right: 72px;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem;
+  border: 1px solid #d7d4ca;
+  border-radius: 7px;
+  background: rgb(243 241 235 / 96%);
+  box-shadow: 0 5px 20px rgb(31 48 42 / 10%);
+}
+.presentation-controls button {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #d1cec4;
+  border-radius: 4px;
+  background: #f8f7f2;
+  color: #173b35;
+  font: 650 0.75rem/1.2 system-ui, sans-serif;
+  cursor: pointer;
+}
+.presentation-controls button:hover:not(:disabled) { background: #eae8df; }
+.presentation-controls button:disabled { color: #74827b; cursor: not-allowed; }
+.presentation-controls .presentation-exit { color: #65518e; }
+.presentation-position { max-width: 15rem; padding: 0 0.55rem; color: #42665c; font-size: 0.7rem; font-weight: 650; }
+.experience-shell.is-presentation {
+  max-width: 1680px;
+  min-height: 100vh;
+  grid-template-columns: minmax(340px, 1fr) minmax(300px, 0.95fr) minmax(390px, 1.1fr);
+  padding-top: 4.5rem;
+}
+.is-presentation .story-hero,
+.is-presentation .story-end { display: none; }
+.is-presentation .story-step:not(.is-stage-active) { display: none; }
+.is-presentation .story-step.is-stage-active {
+  min-height: calc(100vh - 6rem);
+  padding: 3rem 1rem 3rem 1.5rem;
+  border-top: 0;
+  justify-content: center;
+}
+.is-presentation .step-caption { max-width: 42ch; font-size: clamp(1.2rem, 1.55vw, 1.75rem); line-height: 1.65; }
+.is-presentation .panel-title { font-size: clamp(2.5rem, 4vw, 4rem); }
+.is-presentation .diagram-column { top: 4.5rem; height: calc(100vh - 5.5rem); padding-top: 0; }
+.is-presentation .code-column { top: 4.5rem; }
+.is-presentation .structured-code { font-size: 0.78rem; line-height: 1.65; }
+.is-presentation .code-operation-label { font-size: 0.72rem; }
+
+@media (max-width: 900px) {
+  .presentation-controls { top: 0.55rem; right: 0.6rem; left: auto; max-width: calc(100vw - 1.2rem); }
+  .presentation-position { max-width: 5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .presentation-controls { gap: 0.25rem; padding: 0.25rem; }
+  .presentation-controls button { min-height: 2.1rem; padding: 0.35rem 0.4rem; font-size: 0.68rem; }
+  .experience-shell.is-presentation { padding-top: 0; }
+  .is-presentation .diagram-column { top: 0; height: clamp(250px, 58vw, 340px); min-height: 250px; max-height: 340px; padding: 0.65rem; }
+  .is-presentation .story-step.is-stage-active { min-height: 68vh; padding-top: 3rem; }
 }

@@ -1,80 +1,56 @@
-# How Transformers Are Built
+# How a Machine Continues Text
 
-A Pudding-style scrollytelling website that explains the GPT architecture — from raw text to trained model — with animated D3 diagrams and real PyTorch code synced to each section.
+An independent, self-guided explanation of how a decoder-only transformer processes a sentence and produces scores for a possible next token.
 
-**Live:** https://abditimer.github.io/explain_ai/
+**Live site:** [abditimer.github.io/explain_ai](https://abditimer.github.io/explain_ai/)
 
-## Architecture
+## The story
 
-```
-Story column (scrolls)          Diagram column (sticky)
-────────────────────────        ──────────────────────────
-Hero title                      D3 animated diagram
-                                  └─ auto-advances through steps
-Section 1 (step trigger)             as each section enters view
-Section 2
-…                               Code workspace
-Section 8                         └─ PyTorch snippet synced
-                                     to current section
-```
+The visitor follows “The cat sat on the” through eight chapters: the next-token question, GPT-2 tokenisation, token and position representations, causal attention, feed-forward processing, residual blocks, next-token scores, and training. Each chapter connects its diagram to a focused excerpt from the complete Python implementation.
 
-## Story sections
+The model code describes a GPT-2 Small–style decoder-only architecture with a 256-token context. It starts from random weights and does not load or claim to reproduce a pretrained GPT-2 checkpoint. Tokenizer IDs are recorded GPT-2 output; the attention values, embedding vectors, and training curve are illustrative. The temperature experiment is a reproducible three-logit softmax, not model inference. These boundaries are documented in the [educational content audit](docs/EDUCATIONAL_CONTENT_AUDIT.md).
 
-| # | ID | Topic |
-|---|---|---|
-| 1 | `intro` | Next-token prediction |
-| 2 | `tokenization` | BPE tokenisation + sliding window |
-| 3 | `embeddings` | Token + position embeddings |
-| 4 | `attention` | Multi-head attention heatmap |
-| 5 | `feedforward` | FFN expansion 768 → 3072 → 768 |
-| 6 | `block` | Transformer block + residuals |
-| 7 | `generation` | Autoregressive sampling |
-| 8 | `training` | Loss curve, backprop, AdamW |
+## Experience and implementation
 
-## Tech stack
+- React owns the narrative, experiments, and accessible reading structure.
+- Scrollama reports scroll-linked beat progress; D3 renders the diagrams from that state.
+- Scene diagrams load when first visited and remain mounted for predictable navigation.
+- Direct beat links use URL fragments; presentation mode is available with `?presentation=1`.
+- Fraunces and Manrope are self-hosted as variable WOFF2 fonts under OFL-1.1. Diagram assets are authored in SVG and HTML.
+- The production build registers a scoped service worker for same-origin offline fallback.
 
-| Library | Role |
-|---|---|
-| **React 19** + **Vite** | UI and dev server |
-| **Scrollama** | IntersectionObserver-based step triggers |
-| **Lenis** | Smooth scroll (doesn't break `position:sticky`) |
-| **D3.js** | Animated SVG diagrams |
-| **highlight.js** | Python syntax highlighting |
+## Run locally
 
-## Scrollytelling pattern
-
-- **Sticky graphic**: diagram column is `position: sticky` with `align-items: start` on the grid
-- **Step triggers**: `.story-step` elements are Scrollama steps; `onStepEnter` sets `activeGlobal`
-- **Diagram crossfade**: when the section changes, the old diagram fades out (`translateY(-6px)`) while the new one fades in — both rendered simultaneously for a smooth overlap
-- **Keyboard nav**: arrow keys scroll step-by-step via Lenis; `__targetStep` advances immediately, `__activeStep` syncs back from Scrollama ground truth
-- **Diagram map**: `DIAGRAM_MAP[section.id]` selects the D3 component for the active section
-
-## Navigation
-
-- **Desktop**: fixed dot-nav panel on the right edge — click any section number or sub-step to jump
-- **Mobile**: fixed bottom bar with ← Prev / section name / Next → buttons
-
-## Roadmap
-
-- [x] Phase 1 — Scroll engine (Scrollama + Lenis)
-- [x] Phase 2 — Layout rebuild (sticky diagram + code workspace)
-- [x] Phase 3 — D3 animated diagrams (all 8 sections)
-- [x] Phase 4 — Polish (syntax highlighting, progress bar, dot nav, step pips)
-- [x] Phase 5 — Diagram crossfade transition between sections
-- [x] Phase 6 — Mobile layout pass (375px, 768px) + bottom nav bar
-- [ ] Phase 7 — Hero typewriter animation
-
-## Getting started
-
-```bash
-npm install
+```sh
+npm ci
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Vite prints a local development URL, normally `http://localhost:5173/`.
 
-| Command | Description |
-|---|---|
-| `npm run build` | Production build |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint |
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run build` | Create the production site in `dist/` using the GitHub Pages `/explain_ai/` base path. |
+| `npm run preview` | Serve that build locally at `/explain_ai/` to match the deployed subpath. |
+| `npm run verify:code` | Check displayed Python excerpts against canonical source lines and page anchors. |
+| `npm run verify:story-map` | Check beat-to-source ranges and diagram object IDs. |
+| `npm run verify:demonstrations` | Recompute attention and temperature examples, check normalization, token references, hashes, and public data copies. |
+| `npm run verify:offline` | Exercise service worker install, same-origin cache, offline fallback, and scope boundaries with a deterministic worker harness. |
+| `npm run verify:model` | Run focused CPU checks with the pinned Python dependencies using `uv`. |
+| `npm run record:generation-demo` | Re-record the illustrative toy softmax and its provenance. |
+| `npm run generate:code` | Regenerate code excerpts and the complete implementation page. |
+| `npm run lint` | Run ESLint. |
+
+To reproduce tokenizer data with Python 3.12, run:
+
+```sh
+uv run --with-requirements docs/code/requirements-tokenizer.txt --python 3.12 python docs/code/record_tokenizer_demo.py
+```
+
+The model source requires the pinned packages in `docs/code/requirements.txt`. To run its focused CPU checks, use `uv run --with-requirements docs/code/requirements.txt --python 3.12 python scripts/verify_teaching_model.py`.
+
+## Deployment and project notes
+
+GitHub Actions builds and publishes `dist/` to GitHub Pages whenever `main` is updated. The current public URL and design state are tracked in [TODO.md](TODO.md); the award target and current submission requirements are in [docs/AWARD_TARGET.md](docs/AWARD_TARGET.md).

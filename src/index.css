@@ -3,10 +3,19 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: #06080f;
-  color: #e8e8f0;
+  font-family: 'Manrope Variable', system-ui, -apple-system, sans-serif;
+  background: #f3f1eb;
+  color: #173b35;
   -webkit-font-smoothing: antialiased;
 }
 
 #root { min-height: 100vh; }
+
+/* Keep keyboard focus visible against the warm page and dark interactive panels. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #b35d32;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px #f3f1eb;
+}

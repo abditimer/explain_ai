@@ -4,10 +4,10 @@ export const sections = [
     title: 'Data Preparation',
     color: 'border-blue-500',
     bgColor: 'bg-blue-50',
-    content: `GPT processes text by converting it into tokens - numerical IDs. We use BPE (Byte Pair Encoding) tokenization.
+    content: `This teaching implementation uses the GPT-2 byte-level BPE tokenizer to convert text into token IDs. IDs label vocabulary entries; the model's learned vectors are looked up in a later step.
 
 The SlidingWindowDataset creates training examples by moving through text with overlapping windows. Each window is an input-output pair for next-token prediction.`,
-    visual: `"Hello world" → [15496, 995]
+    visual: `"The cat sat on the" → [464, 3797, 3332, 319, 262]
 
 Sliding Window (stride=128):
 Window 1: [tok1...tok256] → [tok2...tok257]
@@ -19,7 +19,7 @@ Window 2: [tok129...tok384] → [tok130...tok385]`
     color: 'border-purple-500',
     bgColor: 'bg-purple-50',
     highlightSection: 'model',
-    content: `Two types of embeddings convert tokens to vectors:
+    content: `This GPT-2 Small–style configuration uses two learned lookup tables:
 
 1. Token Embedding: Maps each token ID → 768-dim vector
 2. Position Embedding: Adds positional info (0→768-dim, 1→768-dim, etc.)
@@ -27,27 +27,27 @@ Window 2: [tok129...tok384] → [tok130...tok385]`
 These are created in GPT.__init__() and summed in GPT.forward().
 
 Look at the GPT Model code (highlighted) → embeddings are defined at the top of the class.`,
-    visual: `Token 42:    [0.23, -0.11, 0.45, ...]
-Position 0:  [0.05,  0.32, -0.08, ...]
+    visual: `Schematic values only (not model weights):
+Token:       [ 0.23, -0.11,  0.45, ...]
+Position:    [ 0.05,  0.32, -0.08, ...]
              ──────────────────────────
-Sum:         [0.28,  0.21,  0.37, ...]`
+Sum:         [ 0.28,  0.21,  0.37, ...]`
   },
   {
     id: 'attention',
     title: 'Multi-Head Attention',
     color: 'border-pink-500',
     bgColor: 'bg-pink-50',
-    content: `Attention lets tokens "look at" each other to gather context.
+    content: `Causal self-attention lets each position mix information from permitted positions in the context.
 
-For each token:
+Three projections of the input drive it:
 • Query (Q): what am I looking for?
-• Key (K): what do I contain?
-• Value (V): what info do I pass?
+• Key (K): what do I advertise?
+• Value (V): what do I actually return?
 
-Scores = softmax(Q·K^T / √d)
-Output = Scores · V
+Attention(Q,K,V) = softmax(QK^T / √d_k) · V
 
-Causal mask ensures we only look backward.`,
+Dividing by √d_k controls score scale and helps avoid overly large dot products. Multiple heads compute separate attention mixtures in parallel; their outputs are concatenated and projected. A residual addition is applied by the enclosing transformer block. This is one common design, not a requirement for all transformers.`,
     visual: `Q @ K^T → Attention Scores
          ↓
     Apply mask & softmax
@@ -59,7 +59,7 @@ Causal mask ensures we only look backward.`,
     title: 'FeedForward Network',
     color: 'border-orange-500',
     bgColor: 'bg-orange-50',
-    content: `Simple MLP applied to each position independently.
+    content: `A two-layer MLP is applied independently to each position in this model.
 
 Expands dimension 4x, applies GELU activation, then projects back.
 
@@ -73,7 +73,7 @@ Linear2: 3072 → 768`
     title: 'Transformer Block',
     color: 'border-green-500',
     bgColor: 'bg-green-50',
-    content: `Combines attention + feedforward with residual connections:
+    content: `This implementation uses pre-LayerNorm sublayers and residual additions:
 
 1. x → LayerNorm → Attention → Dropout → Add(x)
 2. x → LayerNorm → FeedForward → Dropout → Add(x)
@@ -92,7 +92,7 @@ LN → FF → Drop ─┘`
     title: 'GPT Architecture',
     color: 'border-indigo-500',
     bgColor: 'bg-indigo-50',
-    content: `Full model stacks 12 transformer blocks:
+    content: `This GPT-2 Small–style teaching configuration stacks 12 transformer blocks:
 
 1. Token + Position Embeddings
 2. 12× Transformer Blocks
@@ -114,21 +114,21 @@ LayerNorm → Output Head → Logits`
     title: 'Text Generation',
     color: 'border-teal-500',
     bgColor: 'bg-teal-50',
-    content: `Autoregressive generation: predict next token, append, repeat.
+    content: `Autoregressive generation: predict a next-token distribution, choose one token, append it, and repeat. The code illustrates this procedure; no trained checkpoint is loaded here.
 
-Temperature: controls randomness (lower = more confident)
+Temperature: rescales logits before softmax (lower positive values sharpen the distribution)
 Top-k: sample from k most likely tokens
 
 logits/temperature → softmax → sample`,
-    visual: `"The cat" → Model
+    visual: `"The cat sat on the" → Model
     ↓
 Logits for all tokens
     ↓
 Temperature + Top-k
     ↓
-Sample → "sat"
+    Sample → one token
     ↓
-"The cat sat" → repeat`
+    Append token → repeat`
   },
   {
     id: 'training',

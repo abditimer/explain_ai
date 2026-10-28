@@ -39,6 +39,7 @@ Vite prints a local development URL, normally `http://localhost:5173/`.
 | `npm run verify:demonstrations` | Recompute attention and temperature examples, check normalization, token references, hashes, and public data copies. |
 | `npm run verify:checkpoint-output` | Verify the pinned checkpoint provenance, full-vocabulary logit hash, top-token ranking, normalization, and public data copies. |
 | `npm run verify:offline` | Exercise service worker install, same-origin cache, offline fallback, and scope boundaries with a deterministic worker harness. |
+| `npm run verify:offline-manifest` | Check that the production precache manifest includes each offline asset exactly once and stays within its size budget. |
 | `npm run verify:model` | Run focused CPU checks with the pinned Python dependencies using `uv`. |
 | `npm run record:generation-demo` | Re-record the illustrative toy softmax and its provenance. |
 | `npm run record:gpt2-output` | Download the pinned 548 MB GPT-2 Small checkpoint to the local Hugging Face cache and re-record the 50,257 float32 next-token logits. Checkpoint weights are not included in the site. |

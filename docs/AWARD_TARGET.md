@@ -14,7 +14,7 @@ Target CSS Design Awards (CSSDA), submitting as a solo designer with one collabo
 
 ## Readiness
 
-The public URL serves the redesign deployed from commit `33372a4`. The project has a social preview, concise project narrative, and a production build that passes. It is **not ready to submit yet**: the required screenshot review and independent user testing remain, as do some responsive/runtime checks. The uncredited JPEG has been removed from the site and production assets. No submission was made and no fee was paid.
+The public URL serves the redesign and checkpoint-backed next-token chart deployed from commit `3463d09`. The project has a social preview, concise project narrative, and a production build that passes. It is **not ready to submit yet**: the required screenshot review and independent user testing remain, as do some responsive/runtime checks. The uncredited JPEG has been removed from the site and production assets. No submission was made and no fee was paid.
 
 ## Draft description (within the 130-character form limit)
 
